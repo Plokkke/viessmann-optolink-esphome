@@ -1,8 +1,15 @@
 # heater-controller
 
+**Français** · [English](README.en.md)
+
 Adaptateur DIY qui pilote la chaudière Viessmann **Vitodens 222-W** (murale, ballon intégré ; régulation Vitotronic 200 type HO1B, Device ID Optolink `20CB`) depuis Home Assistant par l'interface optique **Optolink**, en lisant et en écrivant ses *datapoints* (température de chaudière, consigne d'ambiance, mode de fonctionnement, mode économie, défaut).
 
 Firmware ESPHome sur un Wemos D1 mini (ESP8266) ; protocole `P300` ; composant `optolink` de la PR ESPHome [#4453](https://github.com/esphome/esphome/pull/4453).
+
+> [!NOTE]
+> **État du projet.** Le montage (adaptateur IR sur plaque d'essai) et le firmware **fonctionnent sur la chaudière** : lecture des températures et écriture de la consigne et du mode validées. La **carte dédiée** (`hardware/`) et le **boîtier** associé ne sont **pas définitifs** : la carte n'a pas encore été fabriquée.
+
+**Mots-clés** : Viessmann Vitodens 222-W, Vitotronic 200 HO1B, chaudière gaz, Optolink, interface optique, adaptateur IR, Device ID `20CB`, protocole P300 / VS2, OpenV, vcontrold, ESPHome, Home Assistant, domotique, ESP8266, Wemos D1 mini, HLK-PM01, remplacement du thermostat Tado.
 
 ## Arborescence
 
@@ -36,7 +43,7 @@ La LED IR est alignée sur le phototransistor de la chaudière et inversement (r
 
 ![Schéma](hardware/heater-controller.svg)
 
-Ouvrir `hardware/heater-controller.kicad_pro` dans KiCad 10. La carte (65 × 63 mm, 2 couches) reprend le montage ci-dessus et y ajoute l'alimentation 230 V → 5 V :
+Ouvrir `hardware/heater-controller.kicad_pro` dans KiCad 10, ou en ligne sur [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/heater-controller/blob/main/hardware/heater-controller.kicad_sch). La carte (65 × 63 mm, 2 couches) reprend le montage ci-dessus et y ajoute l'alimentation 230 V → 5 V :
 
 | Élément | Choix |
 |---|---|
