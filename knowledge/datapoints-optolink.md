@@ -129,7 +129,6 @@ Index `CB` → famille `_200_1x` ; l'entité « Extended identification » (`0x0
 ## Limites
 
 - **Débit** : 4800 bauds, une requête à la fois, la régulation répond en 0,2 à 3 s. Viser moins de 0,5 requête/s, avec des intervalles décalés (nombres premiers) pour éviter les rafales. L'entité `QUEUE_SIZE` surveille la saturation.
-- **Mémoire de l'ESP8266** : rester autour de 30–35 entités, pas de `web_server`, peu de RAW de 9 octets ou de `DAY_SCHEDULE`.
 - **Écritures** : les consignes et les modes sont stockés en EEPROM. On écrit seulement quand une valeur change, **jamais en boucle** (pas de régulation PID qui écrit chaque minute). Ne jamais écrire :
   - les codages (0x27xx hors D3/D4/F2, 0x57xx, 0x67xx, 0x77xx) ;
   - les variables LON `nvi*` (0xA38x, 0xA3Cx) ;
