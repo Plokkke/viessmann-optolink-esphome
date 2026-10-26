@@ -1,4 +1,4 @@
-# heater-controller
+# viessmann-optolink-esphome
 
 **Français** · [English](README.en.md)
 
@@ -43,7 +43,7 @@ La LED IR est alignée sur le phototransistor de la chaudière et inversement (r
 
 ![Schéma](hardware/heater-controller.svg)
 
-Ouvrir `hardware/heater-controller.kicad_pro` dans KiCad 10, ou en ligne sur [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/heater-controller/blob/main/hardware/heater-controller.kicad_sch). La carte (65 × 63 mm, 2 couches) reprend le montage ci-dessus et y ajoute l'alimentation 230 V → 5 V :
+Ouvrir `hardware/heater-controller.kicad_pro` dans KiCad 10, ou en ligne sur [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/viessmann-optolink-esphome/blob/main/hardware/heater-controller.kicad_sch). La carte (65 × 63 mm, 2 couches) reprend le montage ci-dessus et y ajoute l'alimentation 230 V → 5 V :
 
 | Élément | Choix |
 |---|---|

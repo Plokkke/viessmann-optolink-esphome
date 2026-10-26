@@ -1,4 +1,4 @@
-# heater-controller
+# viessmann-optolink-esphome
 
 [Français](README.md) · **English**
 
@@ -43,7 +43,7 @@ The IR LED faces the boiler's phototransistor and vice versa (Optolink "V" mark)
 
 ![Schematic](hardware/heater-controller.svg)
 
-Open `hardware/heater-controller.kicad_pro` in KiCad 10, or online with [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/heater-controller/blob/main/hardware/heater-controller.kicad_sch). The board (65 × 63 mm, 2 layers) takes the circuit above and adds the 230 V → 5 V supply:
+Open `hardware/heater-controller.kicad_pro` in KiCad 10, or online with [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/viessmann-optolink-esphome/blob/main/hardware/heater-controller.kicad_sch). The board (65 × 63 mm, 2 layers) takes the circuit above and adds the 230 V → 5 V supply:
 
 | Item | Choice |
 |---|---|
