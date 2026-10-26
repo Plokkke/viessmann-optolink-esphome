@@ -1,0 +1,282 @@
+packages:
+  common: !include common.yaml
+
+external_components:
+  - source: github://pr#4453
+    components: [optolink]
+    refresh: 1h
+
+logger:
+  hardware_uart: UART0
+  baud_rate: 0
+
+# Vitotronic 200 HO1B (20CB): addresses and confidence in knowledge/datapoints-optolink.md
+# Prime, staggered update intervals keep the Optolink queue below ~0.5 request/s
+optolink:
+  protocol: P300
+
+# Failsafe: without Home Assistant for 30 min, hand heating back to the controller's own schedule
+api:
+  reboot_timeout: 0s
+  on_client_connected:
+    - script.stop: failsafe
+  on_client_disconnected:
+    - script.execute: failsafe
+
+esphome:
+  on_boot:
+    - script.execute: failsafe
+
+script:
+  - id: failsafe
+    mode: single
+    then:
+      - delay: 30min
+      - logger.log:
+          level: WARN
+          format: "Home Assistant unreachable for 30 min, restoring 'Heating and hot water'"
+      - select.set:
+          id: operation_mode
+          option: Heating and hot water
+
+sensor:
+  - platform: optolink
+    type: QUEUE_SIZE
+    name: Optolink queue size
+    entity_category: diagnostic
+    update_interval: 15s
+  - platform: optolink
+    name: Boiler Temperature
+    address: 0xA309
+    bytes: 2
+    div_ratio: 100
+    unit_of_measurement: °C
+    device_class: temperature
+    state_class: measurement
+    accuracy_decimals: 1
+    update_interval: 41s
+  - platform: optolink
+    name: Boiler setpoint
+    address: 0x555A
+    bytes: 2
+    div_ratio: 10
+    unit_of_measurement: °C
+    device_class: temperature
+    update_interval: 59s
+  - platform: optolink
+    name: Outdoor temperature
+    address: 0x5525
+    bytes: 2
+    div_ratio: 10
+    unit_of_measurement: °C
+    device_class: temperature
+    state_class: measurement
+    update_interval: 293s
+  - platform: optolink
+    name: Flow setpoint
+    address: 0x2544
+    bytes: 2
+    div_ratio: 10
+    unit_of_measurement: °C
+    device_class: temperature
+    update_interval: 119s
+  - platform: optolink
+    name: Hot water temperature
+    address: 0x0812
+    bytes: 2
+    div_ratio: 10
+    unit_of_measurement: °C
+    device_class: temperature
+    state_class: measurement
+    update_interval: 61s
+  - platform: optolink
+    name: Flue gas temperature
+    address: 0x0816
+    bytes: 2
+    div_ratio: 10
+    unit_of_measurement: °C
+    device_class: temperature
+    state_class: measurement
+    update_interval: 67s
+  - platform: optolink
+    name: Burner power
+    address: 0xA38F
+    bytes: 1
+    filters:
+      - multiply: 0.5
+    unit_of_measurement: "%"
+    state_class: measurement
+    update_interval: 31s
+  - platform: optolink
+    name: Burner starts
+    address: 0x088A
+    bytes: 4
+    state_class: total_increasing
+    update_interval: 1800s
+  - platform: optolink
+    name: Burner hours
+    address: 0x08A7
+    bytes: 4
+    div_ratio: 3600
+    unit_of_measurement: h
+    device_class: duration
+    state_class: total_increasing
+    update_interval: 1799s
+  - platform: optolink
+    name: Heating curve level
+    address: 0x27D4
+    bytes: 1
+    filters:
+      - lambda: "return x > 127 ? x - 256 : x;"
+    unit_of_measurement: K
+    entity_category: diagnostic
+    update_interval: 1797s
+  # Coding A0 (heating circuit 1): 0 = no remote control, 1 = Vitotrol 200, 2 = Vitotrol 300
+  - platform: optolink
+    name: Remote control coding A0
+    address: 0x27A0
+    bytes: 1
+    entity_category: diagnostic
+    update_interval: 1791s
+  # 0 = the controller's own room setpoint applies
+  - platform: optolink
+    name: External room temperature setpoint
+    address: 0x2321
+    bytes: 1
+    unit_of_measurement: °C
+    device_class: temperature
+    update_interval: 307s
+
+binary_sensor:
+  - platform: optolink
+    name: Disturbance
+    address: 0x0A82
+    device_class: problem
+    update_interval: 43s
+  - platform: optolink
+    name: Burner
+    address: 0x55D3
+    device_class: heat
+    update_interval: 23s
+  - platform: optolink
+    name: Internal pump
+    address: 0x7660
+    device_class: running
+    update_interval: 37s
+  - platform: optolink
+    name: Hot water charging pump
+    address: 0x6513
+    device_class: running
+    update_interval: 53s
+
+number:
+  - platform: optolink
+    name: Room Temperature Setpoint
+    unit_of_measurement: °C
+    address: 0x2306
+    bytes: 1
+    min_value: 3
+    max_value: 37
+    step: 1
+    mode: box
+    icon: "mdi:home-thermometer"
+    device_class: temperature
+    update_interval: 113s
+  - platform: optolink
+    name: Reduced room temperature setpoint
+    unit_of_measurement: °C
+    address: 0x2307
+    bytes: 1
+    min_value: 3
+    max_value: 37
+    step: 1
+    mode: box
+    device_class: temperature
+    update_interval: 301s
+  - platform: optolink
+    name: Hot water setpoint
+    unit_of_measurement: °C
+    address: 0x6300
+    bytes: 1
+    min_value: 10
+    max_value: 60
+    step: 1
+    mode: box
+    device_class: temperature
+    update_interval: 311s
+  - platform: optolink
+    name: Heating curve slope
+    address: 0x27D3
+    bytes: 1
+    div_ratio: 10
+    min_value: 0.2
+    max_value: 3.5
+    step: 0.1
+    mode: box
+    entity_category: config
+    update_interval: 1793s
+
+switch:
+  - platform: optolink
+    name: Economy mode
+    address: 0x2331
+    icon: mdi:sprout-outline
+    update_interval: 97s
+
+select:
+  - platform: optolink
+    id: operation_mode
+    name: Operation mode
+    address: 0x2323
+    bytes: 1
+    update_interval: 47s
+    map:
+      - "0 -> Off"
+      - "1 -> Only hot water"
+      - "2 -> Heating and hot water"
+      - "3 -> Permanently reduced"
+      - "4 -> Permanently normal"
+
+text_sensor:
+  - platform: optolink
+    type: DEVICE_INFO
+    name: Device Info
+    entity_category: diagnostic
+    update_interval: 1800s
+  - platform: optolink
+    type: RAW
+    name: Extended identification
+    address: 0x00F0
+    bytes: 1
+    entity_category: diagnostic
+    update_interval: 1800s
+  - platform: optolink
+    type: MAP
+    name: Heating state
+    address: 0x2500
+    bytes: 1
+    update_interval: 71s
+    filters:
+      - map:
+          - "0 -> Off"
+          - "1 -> Reduced"
+          - "2 -> Normal"
+          - "3 -> Permanently normal"
+  - platform: optolink
+    type: MAP
+    name: Hot water charging state
+    address: 0x650A
+    bytes: 1
+    update_interval: 29s
+    filters:
+      - map:
+          - "0 -> Idle"
+          - "1 -> Charging"
+          - "2 -> Overrun"
+  - platform: optolink
+    type: RAW
+    name: Last error
+    address: 0x7590
+    bytes: 9
+    entity_category: diagnostic
+    update_interval: 1795s

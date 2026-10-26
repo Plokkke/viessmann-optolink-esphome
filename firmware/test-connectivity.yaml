@@ -1,0 +1,31 @@
+packages:
+  common: !include common.yaml
+
+logger:
+  level: DEBUG
+
+sensor:
+  - platform: template
+    name: Fake boiler temperature
+    unit_of_measurement: °C
+    device_class: temperature
+    accuracy_decimals: 1
+    update_interval: 10s
+    lambda: return 55.0 + 5.0 * sin(millis() / 60000.0);
+
+number:
+  - platform: template
+    name: Fake room temperature setpoint
+    unit_of_measurement: °C
+    device_class: temperature
+    min_value: 3
+    max_value: 37
+    step: 1
+    initial_value: 20
+    optimistic: true
+    mode: box
+
+switch:
+  - platform: template
+    name: Fake economy mode
+    optimistic: true
