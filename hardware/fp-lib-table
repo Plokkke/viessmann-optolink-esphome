@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "heater-controller")(type "KiCad")(uri "${KIPRJMOD}/heater-controller.pretty")(options "")(descr "Project footprints"))
+)

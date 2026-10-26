@@ -1,0 +1,11 @@
+(version 1)
+
+# Reinforced isolation between 230 V copper and the low-voltage side
+(rule "mains_to_low_voltage"
+  (constraint clearance (min 6mm))
+  (condition "A.hasNetclass('Mains') && !B.hasNetclass('Mains') && B.Type != 'Hole'"))
+
+# Terminal block J1 keeps its own rated 5.08 mm pitch (2.48 mm copper gap between its two pads)
+(rule "mains_between_conductors"
+  (constraint clearance (min 2.5mm))
+  (condition "A.hasNetclass('Mains') && B.hasNetclass('Mains') && A.NetName != B.NetName && !(A.memberOfFootprint('J1') && B.memberOfFootprint('J1'))"))
