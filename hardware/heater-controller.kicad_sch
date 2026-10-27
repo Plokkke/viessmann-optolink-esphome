@@ -2438,6 +2438,338 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Connector_Generic:Conn_01x08"
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "J"
+				(at 0 10.16 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "Conn_01x08"
+				(at 0 -12.7 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Generic connector, single row, 01x08, script generated (kicad-library-utils/schlib/autogen/connector/)"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "connector"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "Connector*:*_1x??_*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "Conn_01x08_1_1"
+				(rectangle
+					(start -1.27 8.89)
+					(end 1.27 -11.43)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(rectangle
+					(start -1.27 7.747)
+					(end 0 7.493)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 5.207)
+					(end 0 4.953)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 2.667)
+					(end 0 2.413)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 0.127)
+					(end 0 -0.127)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -2.413)
+					(end 0 -2.667)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -4.953)
+					(end 0 -5.207)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -7.493)
+					(end 0 -7.747)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start -1.27 -10.033)
+					(end 0 -10.287)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 7.62 0)
+					(length 3.81)
+					(name "Pin_1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 5.08 0)
+					(length 3.81)
+					(name "Pin_2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 3.81)
+					(name "Pin_3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "Pin_4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -2.54 0)
+					(length 3.81)
+					(name "Pin_5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 3.81)
+					(name "Pin_6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -7.62 0)
+					(length 3.81)
+					(name "Pin_7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -10.16 0)
+					(length 3.81)
+					(name "Pin_8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 	)
 	(text "Optical head off board: D1 (IR LED) and Q1 (phototransistor) on a 4-wire ribbon to J2, pressed into the Optolink holes (3 mm, 14.0 mm apart)"
 		(exclude_from_sim no)
@@ -3304,7 +3636,7 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board no)
 		(in_pos_files yes)
 		(dnp no)
@@ -3384,8 +3716,8 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
+		(in_bom no)
+		(on_board no)
 		(in_pos_files yes)
 		(dnp no)
 		(uuid "28d1e65f-da02-56fa-886e-1ba90528f375")
@@ -3409,7 +3741,7 @@
 				)
 			)
 		)
-		(property "Footprint" "heater-controller:ESP32-C3_SuperMini_Sockets"
+		(property "Footprint" ""
 			(at 63.5 88.9 0)
 			(hide yes)
 			(show_name no)
@@ -3520,7 +3852,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "07D561K"
+		(property "Value" "07D431K (275VAC)"
 			(at 180.34 129.54 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3531,7 +3863,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Varistor:RV_Disc_D9mm_W4.1mm_P5mm"
+		(property "Footprint" "Varistor:RV_Disc_D7mm_W4.3mm_P5mm"
 			(at 177.8 128.27 0)
 			(hide yes)
 			(show_name no)
@@ -3609,7 +3941,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Converter_ACDC:Converter_ACDC_Hi-Link_HLK-PMxx"
+		(property "Footprint" "heater-controller:Converter_ACDC_HLK-PM01"
 			(at 152.4 127 0)
 			(hide yes)
 			(show_name no)
@@ -3759,7 +4091,7 @@
 				)
 			)
 		)
-		(property "Value" "T500mA TR5"
+		(property "Value" "T1A TR5"
 			(at 199.39 135.89 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3822,7 +4154,7 @@
 		(unit 1)
 		(body_style 1)
 		(exclude_from_sim no)
-		(in_bom yes)
+		(in_bom no)
 		(on_board no)
 		(in_pos_files yes)
 		(dnp no)
@@ -4006,7 +4338,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
 			(at 106.68 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -4086,7 +4418,7 @@
 				(justify right)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
+		(property "Footprint" "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal"
 			(at 124.46 59.69 0)
 			(hide yes)
 			(show_name no)
@@ -4232,7 +4564,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "Optical head"
+		(property "Value" "Optical head JST PH 4P"
 			(at 132.08 100.33 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4243,7 +4575,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical"
+		(property "Footprint" "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical"
 			(at 129.54 99.06 0)
 			(hide yes)
 			(show_name no)
@@ -4447,6 +4779,402 @@
 				)
 			)
 		)
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x08")
+		(at 63.5 127.0 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "310acbe7-d88f-47f4-ba02-5a7a50f8c18f")
+		(property "Reference" "J3"
+			(at 66.04 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Socket 1x8 SMD (C3 pins 1-8)"
+			(at 66.04 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "heater-controller:PinSocket_1x08_P2.54mm_SMD_HX-ZQ"
+			(at 63.5 127.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 63.5 127.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C48641756"
+			(at 63.5 127.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "421a0090-45dd-414f-9619-7190906baa84")
+		)
+		(pin "2"
+			(uuid "0b4cd85e-559b-48a8-b6d1-8f04cb71f811")
+		)
+		(pin "3"
+			(uuid "17847b7c-c0b1-48b1-9156-43f7ea98eb30")
+		)
+		(pin "4"
+			(uuid "04db59cc-5996-4b15-a59e-7fd2efaafc87")
+		)
+		(pin "5"
+			(uuid "d33ec31a-8915-4a84-9f87-6532de4ba819")
+		)
+		(pin "6"
+			(uuid "85473a36-708d-4f78-a153-a1e5d2c3299c")
+		)
+		(pin "7"
+			(uuid "15760d46-adf1-4dbd-8f63-8e7fa7ac99b5")
+		)
+		(pin "8"
+			(uuid "a6b7a9c5-5adf-4052-b7be-41c9eca6a04f")
+		)
+		(instances
+			(project "heater-controller"
+				(path "/4266bf52-7a8f-5f06-b6da-e764e6e9f650"
+					(reference "J3")
+					(unit 1)
+				)
+			)
+		)
+	)
+(symbol
+		(lib_id "power:+5V")
+		(at 58.42 119.38 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "df4205c2-d56d-4e92-831b-7a07ddc49df4")
+		(property "Reference" "#PWR11"
+			(at 58.42 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 58.42 115.57 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 58.42 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 58.42 119.38 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 58.42 119.38 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "7704da1f-634c-4316-b739-1c1e718f4e7d")
+		)
+		(instances
+			(project "heater-controller"
+				(path "/4266bf52-7a8f-5f06-b6da-e764e6e9f650"
+					(reference "#PWR11")
+					(unit 1)
+				)
+			)
+		)
+	)
+(symbol
+		(lib_id "power:GND")
+		(at 58.42 121.92 0)
+		(unit 1)
+		(body_style 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board no)
+		(in_pos_files yes)
+		(dnp no)
+		(uuid "479762bf-eed8-4459-a73c-7f2d3b30dc6b")
+		(property "Reference" "#PWR12"
+			(at 58.42 121.92 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 58.42 125.73 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 58.42 121.92 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 58.42 121.92 0)
+			(hide yes)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" ""
+			(at 58.42 121.92 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "1d749802-7101-40a5-9ab3-e9ed43413091")
+		)
+		(instances
+			(project "heater-controller"
+				(path "/4266bf52-7a8f-5f06-b6da-e764e6e9f650"
+					(reference "#PWR12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(label "3V3"
+		(at 58.42 124.46 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "477ece28-27fb-4167-bf2e-8298348620c4")
+	)
+	(label "TX_GPIO4"
+		(at 58.42 127.0 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "25e270bd-5391-4e54-83da-bc83fb4e4023")
+	)
+	(label "RX_GPIO3"
+		(at 58.42 129.54 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "b55f31a5-60f0-41ff-aad0-5f45466ff22f")
+	)
+	(no_connect
+		(at 58.42 132.08)
+		(uuid "86338d04-981c-4f06-a877-5321deb0d00c")
+	)
+	(no_connect
+		(at 58.42 134.62)
+		(uuid "6746e648-ae02-4d81-8aa7-ccb1bf7b30fe")
+	)
+	(no_connect
+		(at 58.42 137.16)
+		(uuid "c6b43125-7da8-42fd-b7b4-85e5f6eeee1c")
+	)
+	(symbol
+		(lib_id "Connector_Generic:Conn_01x08")
+		(at 101.6 127.0 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c8c0a6e4-7d1d-4aa5-b763-ca94804aeed1")
+		(property "Reference" "J4"
+			(at 104.14 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Socket 1x8 SMD (C3 pins 9-16)"
+			(at 104.14 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "heater-controller:PinSocket_1x08_P2.54mm_SMD_HX-ZQ"
+			(at 101.6 127.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 101.6 127.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC" "C48641756"
+			(at 101.6 127.0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "077f8912-016e-4b09-8be3-49952393d074")
+		)
+		(pin "2"
+			(uuid "0f5ca304-750a-40bc-b83d-cddba92dc84e")
+		)
+		(pin "3"
+			(uuid "e55ac73c-ab47-468e-a0eb-e5e95868f124")
+		)
+		(pin "4"
+			(uuid "0762f41f-6155-4b57-b284-5e744d218e46")
+		)
+		(pin "5"
+			(uuid "b760d22a-8f9f-45ad-bef2-54602a9efad9")
+		)
+		(pin "6"
+			(uuid "5f2c292c-736e-40c6-a5c2-d9cf10f8f993")
+		)
+		(pin "7"
+			(uuid "a22d3068-cbe4-4ad9-b2e9-99e861b69dfe")
+		)
+		(pin "8"
+			(uuid "380d3f81-1048-4a0d-96b4-4a173498f64f")
+		)
+		(instances
+			(project "heater-controller"
+				(path "/4266bf52-7a8f-5f06-b6da-e764e6e9f650"
+					(reference "J4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(no_connect
+		(at 96.52 119.38)
+		(uuid "468743fe-3f62-4a57-a616-8c9c86cfc61c")
+	)
+	(no_connect
+		(at 96.52 121.92)
+		(uuid "0ceaaf4e-4391-47c7-b7da-08e04813496b")
+	)
+	(no_connect
+		(at 96.52 124.46)
+		(uuid "7c206e2c-49b8-4155-9e40-ea159b1d8103")
+	)
+	(no_connect
+		(at 96.52 127.0)
+		(uuid "44cefb4e-1383-4771-815e-ed0cb35b5311")
+	)
+	(no_connect
+		(at 96.52 129.54)
+		(uuid "f1f7f254-a045-42ce-84dd-320aa74d7f22")
+	)
+	(no_connect
+		(at 96.52 132.08)
+		(uuid "0ed45332-b6fc-415a-8918-ff5558d3a5ca")
+	)
+	(no_connect
+		(at 96.52 134.62)
+		(uuid "5a70da83-7d85-41f8-8c19-eb01ebbd4a07")
+	)
+	(no_connect
+		(at 96.52 137.16)
+		(uuid "1afe675b-ff7d-46a8-8136-2af14a633e45")
 	)
 	(sheet_instances
 		(path "/"

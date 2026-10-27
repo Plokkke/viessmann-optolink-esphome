@@ -1,0 +1,102 @@
+(footprint "Converter_ACDC_HLK-PM01"
+	(version 20260206)
+	(generator "heater-controller")
+	(layer "F.Cu")
+	(descr "Hi-Link HLK-PM01 (LCSC C209903), pins from the Hi-Link datasheet (pitch tolerance +-8 %): AC 5.0 mm apart, DC 15.4 mm apart, 29.4 mm between the rows; 1.2 mm holes absorb the tolerance")
+	(property "Reference" "REF**"
+		(at 0 14.0 0)
+		(layer "F.SilkS")
+		(uuid "7c499c7a-1ec9-4e85-a2a2-e60f80134622")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Converter_ACDC_HLK-PM01"
+		(at 0 -14.0 0)
+		(layer "F.Fab")
+		(uuid "f26218c1-fa56-4406-802d-2e1b8d84651e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_rect
+		(start -2.3 -7.5)
+		(end 31.7 12.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "8845e433-67cb-4792-a865-3efdf830ceab")
+	)
+	(fp_rect
+		(start -2.42 -7.62)
+		(end 31.82 12.62)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "06bc762e-9e2f-4bcd-8290-5dc7ae2f1791")
+	)
+	(fp_rect
+		(start -2.8 -8.0)
+		(end 32.2 13.0)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "b6f2dacc-347c-4a55-9bf7-d97e838da84f")
+	)
+	(pad "1" thru_hole rect
+		(at 0.0 0.0)
+		(size 2.2 2.2)
+		(drill 1.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "9bfe6606-945c-475d-bb0c-bc697fe5cbeb")
+	)
+	(pad "2" thru_hole circle
+		(at 0.0 5.0)
+		(size 2.2 2.2)
+		(drill 1.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "58f782f0-eb0d-4e1b-8484-61835e9fa32b")
+	)
+	(pad "3" thru_hole circle
+		(at 29.4 -5.2)
+		(size 2.2 2.2)
+		(drill 1.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "89051a60-ca67-4e37-8c30-2c6034d89989")
+	)
+	(pad "4" thru_hole circle
+		(at 29.4 10.2)
+		(size 2.2 2.2)
+		(drill 1.2)
+		(layers "*.Cu" "*.Mask")
+		(uuid "9cc1f35f-f3e3-49a0-a7e7-8cb13ba55da8")
+	)
+	(embedded_fonts no)
+	(model "${KICAD10_3DMODEL_DIR}/Converter_ACDC.3dshapes/Converter_ACDC_Hi-Link_HLK-PMxx.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

@@ -16,7 +16,7 @@ ESPHome firmware on an ESP32-C3 super mini; `P300` protocol; `optolink` componen
 | Folder | Content |
 |---|---|
 | `firmware/` | ESPHome configuration: `common.yaml` (Wi-Fi, API, OTA, LED, diagnostics), `controlleur-chaudiere.yaml` (Optolink), `test-connectivity.yaml` (fake entities), `secrets.example.yaml` |
-| `hardware/` | dedicated KiCad board: schematic (`heater-controller.kicad_sch`, `.svg` render), PCB (`.kicad_pcb`, `-top.png` / `-bottom.png` / `-3d.png` renders), 3D model `heater-controller.step` for enclosure design, C3 super mini symbol (`heater-controller.kicad_sym`) and footprint (`heater-controller.pretty/`, written by `c3-footprint.py`), isolation rules (`.kicad_dru`), manufacturing files (`export-fabrication.sh`) |
+| `hardware/` | dedicated KiCad board: schematic (`heater-controller.kicad_sch`, `.svg` render), PCB (`.kicad_pcb`, `-top.png` / `-bottom.png` / `-3d.png` renders), 3D model `heater-controller.step` for enclosure design, C3 super mini symbol (`heater-controller.kicad_sym`), project footprints (`heater-controller.pretty/`, written by `footprints.py`), isolation rules (`.kicad_dru`), manufacturing files (`export-fabrication.sh`) |
 | `enclosure/` | 3D-printed enclosure clipped onto the Optolink port (`heater-enclosure.stl`), sized for the U-shaped board |
 | `knowledge/` | design notes, in French: `architecture.md` (roles, contract with the controller, safety), `datapoints-optolink.md`, `pression-circuit-chauffage.md`, Viessmann manuals (`manuals/`), optolink component doc, photos |
 
@@ -43,27 +43,29 @@ The IR LED faces the boiler's phototransistor and vice versa (Optolink "V" mark)
 
 ![Schematic](hardware/heater-controller.svg)
 
-Open `hardware/heater-controller.kicad_pro` in KiCad 10, or online with [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/viessmann-optolink-esphome/blob/main/hardware/heater-controller.kicad_sch). The board (86 × 39.5 mm, 2 layers) sits **parallel to the boiler front**, in the wide part of the enclosure, and floats (no fixing). It is an **inverted U**: 230 V on the left leg, the optical head header on the bar, the C3 on the right leg. The notch between the legs (25 mm) separates 230 V from low voltage and lets the 230 V cable reach the terminal block. **Everything is removable**: C3 on sockets, optical head on a header, 230 V on a screw terminal.
+Open `hardware/heater-controller.kicad_pro` in KiCad 10, or online with [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/viessmann-optolink-esphome/blob/main/hardware/heater-controller.kicad_sch). The board (86 × 39.5 mm, 2 layers) sits **parallel to the boiler front**, in the wide part of the enclosure, and floats (no fixing). It is an **inverted U**: 230 V on the left leg, the optical head connector on the bar, the C3 on the right leg. The notch between the legs (24.5 mm) separates 230 V from low voltage and lets the 230 V cable reach the terminal block. **Everything is removable**: C3 on sockets, optical head on a connector, 230 V on a screw terminal, fuse in a holder.
 
 | Ref. | Part | Footprint | Location |
 |---|---|---|---|
-| PS1 | HLK-PM01 (230 V → 5 V, 3 W) | Hi-Link HLK-PMxx (34 × 20 × 15 mm) | left leg, upright: 230 V pins at the bottom, 5 V pins at the top towards the bar |
-| F1 | T500mA fuse | TR5 fuse holder | left leg, top right |
-| RV1 | 07D561K varistor | 9 mm disc, 5 mm pitch | left leg, middle, between the fuse and the HLK |
-| J1 | 2-way screw terminal, L and N wires from plug **96** | Phoenix MKDS 1.5, 5.08 mm pitch | left leg, bottom, opening towards the notch |
-| J2 | optical head header: `GND` `RX` `TX` `LED+` | 1×4 male header, 2.54 mm pitch | U bar; 4-wire ribbon to D1 and Q1 soldered at the far end |
-| MOD1 | ESP32-C3 super mini, **removable** | `heater-controller:ESP32-C3_SuperMini_Sockets`: two 1×8 SMD female sockets (staggered legs) | right leg, antenna against the top edge, USB down |
-| R1 | 220 Ω, IR LED current | SMD 0805 | back face, under the C3 |
-| R2 | 10 kΩ, phototransistor pull-up | SMD 0805 | back face, under the C3 |
+| PS1 | HLK-PM01 (230 V → 5 V, 3 W) | `Converter_ACDC_HLK-PM01`, from the Hi-Link datasheet (34 × 20 × 15 mm) | left leg, upright: 230 V pins at the bottom, 5 V pins at the top towards the bar |
+| F1 | T1A fuse (value recommended by Hi-Link) | TR5 fuse holder | left leg, top right |
+| RV1 | 07D431K varistor (275 VAC) | 7 mm disc, 5 mm pitch | left leg, middle, between the fuse and the HLK |
+| J1 | 2-way screw terminal, L and N wires from plug **96** (up to 1.5 mm² with ferrule) | Phoenix MKDS 1.5, 5.08 mm pitch | left leg, bottom, opening towards the notch |
+| J2 | optical head connector: `GND` `RX` `TX` `LED+` | 4-pin vertical JST PH (B4B-PH-K-S), 2 mm pitch | U bar; 4-wire JST PH lead to D1 and Q1 soldered at the far end |
+| J3, J4 | C3 female sockets (pins 1–8 and 9–16) | `PinSocket_1x08_P2.54mm_SMD_HX-ZQ`: hanxia 1×8 SMD socket (LCSC C48641756), staggered legs | right leg, 15.24 mm apart; C3 antenna against the top edge, USB down |
+| R1 | 220 Ω, IR LED current | axial, 7.62 mm pitch | between the sockets, under the C3 |
+| R2 | 10 kΩ, phototransistor pull-up | axial, 7.62 mm pitch | between the sockets, under the C3 |
 
-D1 (IR LED) and Q1 (phototransistor) are **off board**: pressed into the 3 mm holes of the plug (axes 14.0 mm apart), wired to J2 by the ribbon.
+D1 (IR LED) and Q1 (phototransistor) are **off board**: pressed into the 3 mm holes of the plug (axes 14.0 mm apart), wired to J2 by the lead. The C3 (MOD1) is not soldered: in the schematic it connects through J3 and J4; on the board, a pad-less outline shows where it sits and keeps copper away from the antenna.
+
+The project footprints are written by `hardware/footprints.py`, from the parts' datasheets. The C3 row spacing, 15.24 mm (0.6″, breadboard-compatible module), comes from [ProtoSupplies](https://protosupplies.com/product/esp32c3-supermini/). Pins 1–8 `5V GND 3V3 GPIO4…0` are on one side and pins 9–16 `GPIO5…10 GPIO20 GPIO21` on the other; the first pin is 1.27 mm from the USB edge.
 
 Routing:
 
 - **230 V**: 1 mm tracks, all on the front. The varistor comes first: the line goes from the fuse to the varistor, then from the varistor to the HLK.
-- **5 V and GND**: 0.7 mm tracks along the bar. The HLK GND runs on the back, along the top edge.
-- **Ground plane** on the back of the bar and the right leg, kept off the 230 V leg and the antenna area. It joins J2 and the C3 GND pin, the latter through a via.
-- **Signals**: 0.3 mm tracks.
+- **5 V and GND**: 0.7 mm tracks along the top edge, +5V on the back, GND on the front. GND runs under J2, then along the notch to the C3; that narrow passage stays at 0.3 mm.
+- **Signals**: 0.3 mm tracks; RX runs above J2.
+- **No ground plane** (**DÉCIDÉ**): with a 4800-baud UART and a C3 that has its own ground plane, 0.7 mm tracks are enough, and no copper can end up under the antenna.
 
 DRC rules require ≥ 6 mm between 230 V and low voltage and ≥ 2.5 mm between 230 V conductors. Only the two J1 terminals are exempt: their gap is the block's rated pitch.
 
@@ -78,27 +80,32 @@ DRC (`kicad-cli pcb drc --schematic-parity`) finds no error, no missing connecti
 `hardware/export-fabrication.sh` reruns DRC (it stops if it finds an error), then writes to `hardware/fabrication/` (not versioned):
 
 - `heater-controller-gerbers.zip`, to upload as is to the manufacturer;
-- `heater-controller-bom.csv`, the parts list.
+- `heater-controller-bom-jlcpcb.csv` and `heater-controller-cpl.csv`, the list and positions of the parts JLCPCB assembles: only J3 and J4, the parts that carry an LCSC number in the schematic;
+- `heater-controller-bom.csv`, the full parts list.
 
-The script also regenerates the renders, the STEP and the SVG. Board settings (JLCPCB, PCBWay…): 2 layers, 1.6 mm FR-4, 1 oz copper, lead-free HASL, 5 boards (the minimum). The milling bit rounds the inner corners of the U (about 0.5 mm radius), which does not matter.
+The script also regenerates the renders, the STEP and the SVG.
 
-To buy besides the board:
+Board settings (JLCPCB): 2 layers, 1.6 mm FR-4, 1 oz copper, lead-free HASL, 5 boards (the manufacturing minimum). The milling bit rounds the inner corners of the U (about 0.5 mm radius), which does not matter.
+
+Having JLCPCB fit the sockets is **optional**: about $13 extra (setup, stencil, non-basic part fee), on 2 boards minimum. The row spacing does not depend on who solders: the pads set it. To solder them yourself, plug both sockets onto the C3 before soldering, so the module holds them at its own spacing.
+
+To solder yourself:
 
 | Ref. | Item |
 |---|---|
 | PS1 | genuine Hi-Link HLK-PM01, through-hole pins |
-| F1 | TR5 fuse holder (Littelfuse 560) and TR5 T500mA fuse (Littelfuse 372, 500 mA time-lag) |
-| RV1 | 07D561K varistor |
+| F1 | TR5 fuse holder (Littelfuse 560) and TR5 T1A time-lag fuse (Littelfuse 372) |
+| RV1 | 07D431K varistor |
 | J1 | Phoenix MKDS 1,5/2-5,08 screw terminal (or any 5.08 mm pitch equivalent) |
-| MOD1 | 2 × 1×8 SMD female sockets, 2.54 mm pitch (alternating legs), plus the male pins to solder on the C3 |
-| J2 | 1×4 male header, 2.54 mm pitch; 4-wire ribbon with a 1×4 female (Dupont-style) connector |
-| R1, R2 | 220 Ω and 10 kΩ, 0805 |
+| J2 | B4B-PH-K-S 4-pin vertical JST PH header, and a ready-made 4-wire JST PH lead |
+| J3, J4 | 2 × hanxia HX PM2.54-1x8P TP H8.5-ZQ 1×8 SMD female sockets (LCSC C48641756), unless JLCPCB fits them; male pins to solder on the C3 |
+| R1, R2 | 220 Ω and 10 kΩ, axial |
 | D1, Q1 | 3 mm IR LED (SIR 204 EVL) and 3 mm phototransistor (SFH 309 FA) |
 
 To check before ordering:
 
-- **the C3 row spacing**: the footprint assumes 15.9 mm, measured on the castellated pads. Solder the male pins and measure centre to centre: with female sockets, any error stops the module from plugging in. If it differs, change `ROW_SPACING` in `hardware/c3-footprint.py`, run it from `hardware/`, then update the footprint in KiCad (*Tools → Update Footprints from Library*). The rest of the footprint also comes from measurements: 18 × 22 mm, USB-C overhanging 1.5 mm, first pin 1.27 mm from the USB edge, pins 1–8 `5V GND 3V3 GPIO4…0` on one side and 9–16 `GPIO5…10 GPIO20 GPIO21` on the other;
-- **the HLK-PM01**: the footprint is for a genuine through-hole HLK-PM01 (34 × 20 × 15 mm). A different module, or one with pads, will not fit;
+- **the C3 row spacing**: if the module, with its pins soldered, plugs into a breadboard across the centre channel, 15.24 mm is right;
+- **the HLK-PM01**: the footprint follows the Hi-Link datasheet (5 V pins 15.4 mm apart, 29.4 mm from the 230 V pins), with 1.2 mm holes to absorb the ±8 % tolerance. A different module, or one with pads, will not fit;
 - **a 1:1 print** of `hardware/heater-controller.svg`: lay the C3, the HLK and the terminal block on it;
 - **the enclosure**: the board is 86 × 39.5 mm. The tallest part is the HLK (15 mm); the C3 on sockets stands about 13 mm high. The enclosure `enclosure/heater-enclosure.stl` gives 86.8 × 40.3 mm inside, about 0.4 mm of play per side, and 30.8 mm of depth.
 
