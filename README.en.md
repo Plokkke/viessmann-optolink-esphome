@@ -17,7 +17,7 @@ ESPHome firmware on an ESP32-C3 super mini; `P300` protocol; `optolink` componen
 |---|---|
 | `firmware/` | ESPHome configuration: `common.yaml` (Wi-Fi, API, OTA, LED, diagnostics), `controlleur-chaudiere.yaml` (Optolink), `test-connectivity.yaml` (fake entities), `secrets.example.yaml` |
 | `hardware/` | dedicated KiCad board: schematic (`heater-controller.kicad_sch`, `.svg` render), PCB (`.kicad_pcb`, `-top.png` / `-bottom.png` / `-3d.png` renders), 3D model `heater-controller.step` for enclosure design, C3 super mini symbol (`heater-controller.kicad_sym`), project footprints (`heater-controller.pretty/`, written by `footprints.py`), isolation rules (`.kicad_dru`), manufacturing files (`export-fabrication.sh`) |
-| `enclosure/` | 3D-printed enclosure clipped onto the Optolink port (`heater-enclosure.stl`), sized for the U-shaped board |
+| `enclosure/` | 3D-printed enclosure clipped onto the Optolink port, sized for the U-shaped board: two interlocking half shells (`heater-enclosure-left-shell.stl`, `-right-shell.stl`), the lid (`-lid.stl`) and the plug that clips onto the Optolink (`-optical-plug.stl`) |
 | `knowledge/` | design notes, in French: `architecture.md` (roles, contract with the controller, safety), `datapoints-optolink.md`, `pression-circuit-chauffage.md`, Viessmann manuals (`manuals/`), optolink component doc, photos |
 
 ## Hardware
@@ -48,10 +48,10 @@ Open `hardware/heater-controller.kicad_pro` in KiCad 10, or online with [KiCanva
 | Ref. | Part | Footprint | Location |
 |---|---|---|---|
 | PS1 | HLK-PM01 (230 V → 5 V, 3 W) | `Converter_ACDC_HLK-PM01`, from the Hi-Link datasheet (34 × 20 × 15 mm) | left leg, upright: 230 V pins at the bottom, 5 V pins at the top towards the bar |
-| F1 | T1A fuse (value recommended by Hi-Link) | TR5 fuse holder | left leg, top right |
-| RV1 | 07D431K varistor (275 VAC) | 7 mm disc, 5 mm pitch | left leg, middle, between the fuse and the HLK |
-| J1 | 2-way screw terminal, L and N wires from plug **96** (up to 1.5 mm² with ferrule) | Phoenix MKDS 1.5, 5.08 mm pitch | left leg, bottom, opening towards the notch |
-| J2 | optical head connector: `GND` `RX` `TX` `LED+` | 4-pin vertical JST PH (B4B-PH-K-S), 2 mm pitch | U bar; 4-wire JST PH lead to D1 and Q1 soldered at the far end |
+| F1 | T1A fuse (value recommended by Hi-Link) | TR5 fuse holder, 5.08 mm pitch, 1.0 mm holes | left leg, top right |
+| RV1 | Bourns MOV-07D431K varistor (275 VAC) | `RV_Disc_D9mm_W4.8mm_P5mm_Inline`: inline leads at 5 mm pitch, 1.0 mm holes, 9 × 4.8 mm disc | left leg, middle, between the fuse and the HLK |
+| J1 | 2-way screw terminal, L and N wires from plug **96** (up to 1.5 mm² with ferrule) | `TerminalBlock_Kefa_KF128-5.08_1x02`: Kefa KF128, 5.08 mm pitch, 1.4 mm holes, 10.16 × 10.7 × 14.1 mm | left leg, bottom, opening towards the notch |
+| J2 | optical head connector: `GND` `RX` `TX` `LED+` | 4-pin vertical JST PH (B4B-PH-K-S), 2 mm pitch, holes widened to 0.9 mm | U bar; 4-wire JST PH lead to D1 and Q1 soldered at the far end |
 | J3, J4 | C3 female sockets (pins 1–8 and 9–16) | `PinSocket_1x08_P2.54mm_SMD_HX-ZQ`: hanxia 1×8 SMD socket (LCSC C48641756), staggered legs | right leg, 15.24 mm apart; C3 antenna against the top edge, USB down |
 | R1 | 220 Ω, IR LED current | axial, 7.62 mm pitch | between the sockets, under the C3 |
 | R2 | 10 kΩ, phototransistor pull-up | axial, 7.62 mm pitch | between the sockets, under the C3 |
@@ -63,7 +63,7 @@ The project footprints are written by `hardware/footprints.py`, from the parts' 
 Routing:
 
 - **230 V**: 1 mm tracks, all on the front. The varistor comes first: the line goes from the fuse to the varistor, then from the varistor to the HLK.
-- **5 V and GND**: 0.7 mm tracks along the top edge, +5V on the back, GND on the front. GND runs under J2, then along the notch to the C3; that narrow passage stays at 0.3 mm.
+- **5 V and GND**: 0.7 mm tracks along the top edge, +5V on the back, GND on the front. GND runs under J2, then along the notch to the C3.
 - **Signals**: 0.3 mm tracks; RX runs above J2.
 - **No ground plane** (**DÉCIDÉ**): with a 4800-baud UART and a C3 that has its own ground plane, 0.7 mm tracks are enough, and no copper can end up under the antenna.
 
@@ -80,8 +80,11 @@ DRC (`kicad-cli pcb drc --schematic-parity`) finds no error, no missing connecti
 `hardware/export-fabrication.sh` reruns DRC (it stops if it finds an error), then writes to `hardware/fabrication/` (not versioned):
 
 - `heater-controller-gerbers.zip`, to upload as is to the manufacturer;
-- `heater-controller-bom-jlcpcb.csv` and `heater-controller-cpl.csv`, the list and positions of the parts JLCPCB assembles: only J3 and J4, the parts that carry an LCSC number in the schematic;
+- `heater-controller-bom-jlcpcb.csv` and `heater-controller-cpl.csv`, the list and positions of the parts JLCPCB assembles: only the SMD parts, J3 and J4;
+- `heater-controller-lcsc-cart.csv`, the LCSC cart of the hand-soldered parts (plus the fuse), to upload to the LCSC *BOM Tool*;
 - `heater-controller-bom.csv`, the full parts list.
+
+Every part carries its LCSC number in the schematic (`LCSC` field); `split-bom.py` splits the list between JLCPCB (parts in the placement file) and the LCSC cart. The JLCPCB and LCSC orders can ship together: send the JLCPCB order to the LCSC warehouse, then add it at the LCSC checkout.
 
 The script also regenerates the renders, the STEP and the SVG.
 
@@ -89,25 +92,27 @@ Board settings (JLCPCB): 2 layers, 1.6 mm FR-4, 1 oz copper, lead-free HASL, 5 b
 
 Having JLCPCB fit the sockets is **optional**: about $13 extra (setup, stencil, non-basic part fee), on 2 boards minimum. The row spacing does not depend on who solders: the pads set it. To solder them yourself, plug both sockets onto the C3 before soldering, so the module holds them at its own spacing.
 
-To solder yourself:
+Parts (LCSC stock and prices checked on 2026-10-27); the footprints follow their datasheets, another part number may not fit:
 
-| Ref. | Item |
-|---|---|
-| PS1 | genuine Hi-Link HLK-PM01, through-hole pins |
-| F1 | TR5 fuse holder (Littelfuse 560) and TR5 T1A time-lag fuse (Littelfuse 372) |
-| RV1 | 07D431K varistor |
-| J1 | Phoenix MKDS 1,5/2-5,08 screw terminal (or any 5.08 mm pitch equivalent) |
-| J2 | B4B-PH-K-S 4-pin vertical JST PH header, and a ready-made 4-wire JST PH lead |
-| J3, J4 | 2 × hanxia HX PM2.54-1x8P TP H8.5-ZQ 1×8 SMD female sockets (LCSC C48641756), unless JLCPCB fits them; male pins to solder on the C3 |
-| R1, R2 | 220 Ω and 10 kΩ, axial |
-| D1, Q1 | 3 mm IR LED (SIR 204 EVL) and 3 mm phototransistor (SFH 309 FA) |
+| Ref. | Item | Supplier | Price |
+|---|---|---|---|
+| PS1 | Hi-Link HLK-PM01, through-hole pins | LCSC C209903 | $2.74 |
+| F1 | Littelfuse 56000001009 TR5 fuse holder | LCSC C142909 | $0.76 |
+| F1 | Littelfuse 37211000001 TR5 T1A 250 V time-lag fuse (long leads, cut to ~4 mm) | LCSC C142808 | $0.22 (by 5) |
+| RV1 | Bourns MOV-07D431K varistor | LCSC C1528105 | $0.14 (by 5) |
+| J1 | Kefa KF128-5.08-2P-AA screw terminal (250 V, 24 A, up to 2.5 mm²) | LCSC C474952 | $0.19 (by 5) |
+| J2 | JST B4B-PH-K-S header | LCSC C131334 | $0.05 (by 10) |
+| — | 200 mm 4-wire JST PH lead, tinned ends (Adafruit 4045) | DigiKey 1528-2825-ND | €0.84 |
+| J3, J4 | hanxia HX PM2.54-1x8P TP H8.5-ZQ 1×8 SMD female sockets, fitted by JLCPCB (or hand-soldered); male pins to solder on the C3 | LCSC C48641756 | — |
+| R1, R2 | 220 Ω and 10 kΩ, axial, 1/4 W | own stock | — |
+| D1, Q1 | 3 mm IR LED (SIR 204 EVL) and 3 mm phototransistor (SFH 309 FA), from the prototype | own stock | — |
 
 To check before ordering:
 
 - **the C3 row spacing**: if the module, with its pins soldered, plugs into a breadboard across the centre channel, 15.24 mm is right;
 - **the HLK-PM01**: the footprint follows the Hi-Link datasheet (5 V pins 15.4 mm apart, 29.4 mm from the 230 V pins), with 1.2 mm holes to absorb the ±8 % tolerance. A different module, or one with pads, will not fit;
 - **a 1:1 print** of `hardware/heater-controller.svg`: lay the C3, the HLK and the terminal block on it;
-- **the enclosure**: the board is 86 × 39.5 mm. The tallest part is the HLK (15 mm); the C3 on sockets stands about 13 mm high. The enclosure `enclosure/heater-enclosure.stl` gives 86.8 × 40.3 mm inside, about 0.4 mm of play per side, and 30.8 mm of depth.
+- **the enclosure**: the board is 86 × 39.5 mm. The tallest part is the HLK (15 mm), then the terminal block (14.1 mm); the C3 on sockets stands about 13 mm high. The enclosure gives 86.8 × 40.3 mm inside, about 0.4 mm of play per side, and 30.8 mm of depth.
 
 Once on the boiler, the C3 is powered with 5 V by the HLK-PM01, **never at the same time as USB**: on most C3 super mini boards the `5V` pin is tied straight to the USB-C VBUS, so the external 5 V would flow back into the computer's USB port. To check that the LED emits, look at it through a phone camera.
 

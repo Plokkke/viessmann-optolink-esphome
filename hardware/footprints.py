@@ -3,11 +3,13 @@
 
 Run from hardware/: writes every footprint into heater-controller.pretty/.
 """
+import os
 import uuid
 from pathlib import Path
 
 LIBRARY = Path(__file__).parent / "heater-controller.pretty"
 MODELS = "${KICAD10_3DMODEL_DIR}"
+KICAD_FOOTPRINTS = Path(os.environ.get("KICAD10_FOOTPRINT_DIR", "/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints"))
 PITCH = 2.54
 FONT = "\t\t(effects\n\t\t\t(font\n\t\t\t\t(size 1 1)\n\t\t\t\t(thickness 0.15)\n\t\t\t)\n\t\t)"
 
@@ -22,6 +24,16 @@ C3_ANTENNA_KEEPOUT = 2.3
 SOCKET_PAD = (3.00, 1.02)
 SOCKET_LEG_OFFSET = 1.5
 SOCKET_BODY = (2.5, 20.82)
+
+# Kefa KF128-5.08-2P-AA (LCSC C474952): 1.4 mm holes; body 10.16 wide, 10.7 deep, 14.1 high, pins 5.4 mm from the back
+TERMINAL_PITCH, TERMINAL_DRILL = 5.08, 1.4
+TERMINAL_BACK, TERMINAL_FRONT = 5.4, 5.3
+
+# Bourns MOV-07D431K (LCSC C1528105): leads 0.6 +-0.1 mm at 5.0 +-0.8 mm; disc 9.0 max, 4.8 thick, 11 high
+VARISTOR_PITCH, VARISTOR_DISC, VARISTOR_THICKNESS = 5.0, 9.0, 4.8
+
+# JST B4B-PH-K-S (LCSC C131334): 0.5 mm square pins (0.71 mm diagonal), 0.9 mm holes as recommended by XUNPU
+JST_PH = "JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical"
 
 
 def u():
@@ -61,8 +73,8 @@ def tht_pad(number, x, y, diameter, drill):
             f'\t\t(uuid "{u()}")\n\t)')
 
 
-def model(path, rotate_z=0):
-    return (f'\t(model "{MODELS}/{path}"\n\t\t(offset\n\t\t\t(xyz 0 0 0)\n\t\t)\n'
+def model(path, rotate_z=0, offset_y=0):
+    return (f'\t(model "{MODELS}/{path}"\n\t\t(offset\n\t\t\t(xyz 0 {offset_y} 0)\n\t\t)\n'
             "\t\t(scale\n\t\t\t(xyz 1 1 1)\n\t\t)\n"
             f"\t\t(rotate\n\t\t\t(xyz 0 0 {rotate_z})\n\t\t)\n\t)")
 
@@ -75,6 +87,12 @@ def footprint(name, descr, attr, ref_y, items, models=()):
         f"\t(attr {attr})", *items, "\t(embedded_fonts no)", *models, ")",
     ]
     return "\n".join(parts) + "\n"
+
+
+def body(x0, y0, x1, y1):
+    """Fab outline of the part, silkscreen just outside it, courtyard 0.5 mm around."""
+    return [rect("F.Fab", x0, y0, x1, y1), rect("F.SilkS", x0 - 0.12, y0 - 0.12, x1 + 0.12, y1 + 0.12, 0.12),
+            rect("F.CrtYd", x0 - 0.5, y0 - 0.5, x1 + 0.5, y1 + 0.5, 0.05)]
 
 
 def antenna_keepout():
@@ -130,18 +148,48 @@ def hlk_pm01():
     pins = {"1": (2.3, 12.5), "2": (2.3, 7.5), "3": (31.7, 17.7), "4": (31.7, 2.3)}
     pads = [tht_pad(n, x - origin[0], origin[1] - y, 2.2, 1.2) for n, (x, y) in pins.items()]
     x0, y0, x1, y1 = -origin[0], origin[1] - 20, 34 - origin[0], origin[1]
-    items = [rect("F.Fab", x0, y0, x1, y1), rect("F.SilkS", x0 - 0.12, y0 - 0.12, x1 + 0.12, y1 + 0.12, 0.12),
-             rect("F.CrtYd", x0 - 0.5, y0 - 0.5, x1 + 0.5, y1 + 0.5, 0.05), *pads]
+    items = [*body(x0, y0, x1, y1), *pads]
     descr = ("Hi-Link HLK-PM01 (LCSC C209903), pins from the Hi-Link datasheet (pitch tolerance +-8 %): "
              "AC 5.0 mm apart, DC 15.4 mm apart, 29.4 mm between the rows; 1.2 mm holes absorb the tolerance")
     return footprint("Converter_ACDC_HLK-PM01", descr, "through_hole", y1 + 1.5, items,
                      [model("Converter_ACDC.3dshapes/Converter_ACDC_Hi-Link_HLK-PMxx.step")])
 
 
+def kf128():
+    """Wire entry at +y, like KiCad's Phoenix MKDS footprint it replaces, so the swap keeps the board orientation."""
+    pads = [tht_pad(str(n + 1), n * TERMINAL_PITCH, 0, 2.5, TERMINAL_DRILL) for n in range(2)]
+    entry = text(None, "WIRES", TERMINAL_FRONT - 1.0, "F.Fab")
+    items = [*body(-TERMINAL_PITCH / 2, -TERMINAL_BACK, 1.5 * TERMINAL_PITCH, TERMINAL_FRONT), entry, *pads]
+    descr = ("Kefa KF128-5.08-2P-AA screw terminal (LCSC C474952), from the Kefa drawing: 5.08 mm pitch, 1.4 mm holes, "
+             "body 10.16 x 10.7 mm, 14.1 mm high, pins 5.4 mm from the back, wire entry at +y; 250 V 24 A, up to 2.5 mm2")
+    return footprint("TerminalBlock_Kefa_KF128-5.08_1x02", descr, "through_hole", TERMINAL_FRONT + 1.5, items)
+
+
+def mov_07d():
+    """Leads drawn inline: the 0.6 mm leads bend into 1.0 mm holes (KiCad's footprints stagger them by 2 mm)."""
+    pads = [tht_pad(str(n + 1), n * VARISTOR_PITCH, 0, 1.8, 1.0) for n in range(2)]
+    centre, half = VARISTOR_PITCH / 2, VARISTOR_DISC / 2
+    items = [*body(centre - half, -VARISTOR_THICKNESS / 2, centre + half, VARISTOR_THICKNESS / 2), *pads]
+    descr = ("Bourns MOV-07D431K disc varistor (LCSC C1528105), from the Bourns drawing: leads 0.6 mm at 5.0 +-0.8 mm, "
+             "disc 9.0 mm max, 4.8 mm thick, 11 mm high")
+    return footprint("RV_Disc_D9mm_W4.8mm_P5mm_Inline", descr, "through_hole", VARISTOR_THICKNESS / 2 + 1.5, items,
+                     [model("Varistor.3dshapes/RV_Disc_D9mm_W4.8mm_P5mm.step", offset_y=1.15)])
+
+
+def jst_ph():
+    """KiCad's own footprint, holes widened from 0.75 to 0.9 mm and pads from 1.2 to 1.4 mm to keep the ring."""
+    source = (KICAD_FOOTPRINTS / "Connector_JST.pretty" / f"{JST_PH}.kicad_mod").read_text()
+    return (source.replace(JST_PH, f"{JST_PH}_Drill0.9").replace("(drill 0.75)", "(drill 0.9)")
+            .replace("(size 1.2 1.75)", "(size 1.4 1.75)"))
+
+
 FOOTPRINTS = {
     "ESP32-C3_SuperMini_Outline": c3_outline,
     "PinSocket_1x08_P2.54mm_SMD_HX-ZQ": socket,
     "Converter_ACDC_HLK-PM01": hlk_pm01,
+    "TerminalBlock_Kefa_KF128-5.08_1x02": kf128,
+    "RV_Disc_D9mm_W4.8mm_P5mm_Inline": mov_07d,
+    f"{JST_PH}_Drill0.9": jst_ph,
 }
 
 if __name__ == "__main__":

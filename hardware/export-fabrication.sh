@@ -13,13 +13,13 @@ kicad-cli pcb export gerbers --layers F.Cu,B.Cu,F.Paste,F.SilkS,B.SilkS,F.Mask,B
 kicad-cli pcb export drill --format excellon --excellon-separate-th --generate-map --map-format gerberx2 \
   -o "$OUT/gerbers" "$BOARD.kicad_pcb"
 (cd "$OUT/gerbers" && zip -q "../$BOARD-gerbers.zip" ./*)
-# JLCPCB assembly: BOM keyed by LCSC part number, and placement (CPL) with JLCPCB column names
-kicad-cli sch export bom --fields "Value,Reference,Footprint,LCSC" --labels "Comment,Designator,Footprint,LCSC Part #" \
-  --group-by "LCSC,Value,Footprint" --ref-range-delimiter "" --exclude-dnp -o "$OUT/$BOARD-bom.csv" "$BOARD.kicad_sch"
-# Parts without an LCSC number are hand-soldered through-hole parts: kept out of the JLCPCB files
-grep -v ',""$' "$OUT/$BOARD-bom.csv" > "$OUT/$BOARD-bom-jlcpcb.csv"
+# JLCPCB places the parts of the CPL (SMD only); every other part with an LCSC number goes to the LCSC cart
+kicad-cli sch export bom --fields 'Value,Reference,Footprint,LCSC,${QUANTITY}' \
+  --labels "Comment,Designator,Footprint,LCSC Part #,Quantity" --group-by "LCSC,Value,Footprint" \
+  --ref-range-delimiter "" --exclude-dnp -o "$OUT/$BOARD-bom.csv" "$BOARD.kicad_sch"
 kicad-cli pcb export pos --format csv --units mm --side front --exclude-dnp --exclude-fp-th -o "$OUT/$BOARD-cpl.csv" "$BOARD.kicad_pcb"
 sed -i.bak '1s/.*/Designator,Val,Package,Mid X,Mid Y,Rotation,Layer/' "$OUT/$BOARD-cpl.csv" && rm "$OUT/$BOARD-cpl.csv.bak"
+./split-bom.py "$OUT/$BOARD-bom.csv" "$OUT/$BOARD-cpl.csv" "$OUT/$BOARD-bom-jlcpcb.csv" "$OUT/$BOARD-lcsc-cart.csv"
 
 for side in top bottom; do
   kicad-cli pcb render --side "$side" --width 1600 --height 1000 -o "$BOARD-$side.png" "$BOARD.kicad_pcb"

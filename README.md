@@ -17,7 +17,7 @@ Firmware ESPHome sur un ESP32-C3 super mini ; protocole `P300` ; composant `opto
 |---|---|
 | `firmware/` | configuration ESPHome : `common.yaml` (Wi-Fi, API, OTA, LED, diagnostic), `controlleur-chaudiere.yaml` (Optolink), `test-connectivity.yaml` (entités factices), `secrets.example.yaml` |
 | `hardware/` | carte dédiée KiCad : schéma (`heater-controller.kicad_sch`, rendu `.svg`), circuit imprimé (`.kicad_pcb`, rendus `-top.png` / `-bottom.png` / `-3d.png`), modèle 3D `heater-controller.step` pour le boîtier (Fusion 360), symbole du C3 super mini (`heater-controller.kicad_sym`), empreintes du projet (`heater-controller.pretty/`, produites par `footprints.py`), règles d'isolement (`.kicad_dru`), fichiers de fabrication (`export-fabrication.sh`) |
-| `enclosure/` | boîtier imprimé en 3D, fixé sur le port Optolink (`heater-enclosure.stl`), dimensionné pour la carte en U |
+| `enclosure/` | boîtier imprimé en 3D, fixé sur le port Optolink, dimensionné pour la carte en U : deux demi-coques (`heater-enclosure-left-shell.stl`, `-right-shell.stl`) qui s'emboîtent, le couvercle (`-lid.stl`) et la fiche qui se clipse sur l'Optolink (`-optical-plug.stl`) |
 | `knowledge/` | `architecture.md` (rôles, contrat avec la régulation, sécurité), `datapoints-optolink.md`, `pression-circuit-chauffage.md`, notices Viessmann (`manuals/`), doc du composant optolink, photos |
 
 ## Matériel
@@ -48,10 +48,10 @@ Ouvrir `hardware/heater-controller.kicad_pro` dans KiCad 10, ou en ligne sur [Ki
 | Réf. | Composant | Empreinte | Place |
 |---|---|---|---|
 | PS1 | HLK-PM01 (230 V → 5 V, 3 W) | `Converter_ACDC_HLK-PM01`, d'après la fiche Hi-Link (34 × 20 × 15 mm) | jambe gauche, debout : broches 230 V en bas, broches 5 V en haut vers la barre |
-| F1 | fusible T1A (valeur conseillée par Hi-Link) | porte-fusible TR5 | jambe gauche, en haut à droite |
-| RV1 | varistance 07D431K (275 V AC) | disque de 7 mm, pas de 5 mm | jambe gauche, au milieu, entre le fusible et le HLK |
-| J1 | bornier à vis 2 points, fils L et N de la fiche **96** (jusqu'à 1,5 mm² avec embout) | Phoenix MKDS 1,5 au pas de 5,08 mm | jambe gauche, en bas, ouvert vers l'encoche |
-| J2 | fiche de la tête optique : `GND` `RX` `TX` `LED+` | JST PH 4 broches vertical (B4B-PH-K-S), pas de 2 mm | barre du U ; nappe JST PH 4 fils vers D1 et Q1 soudées au bout |
+| F1 | fusible T1A (valeur conseillée par Hi-Link) | porte-fusible TR5, pas de 5,08 mm, trous de 1,0 mm | jambe gauche, en haut à droite |
+| RV1 | varistance Bourns MOV-07D431K (275 V AC) | `RV_Disc_D9mm_W4.8mm_P5mm_Inline` : pattes alignées au pas de 5 mm, trous de 1,0 mm, disque de 9 × 4,8 mm | jambe gauche, au milieu, entre le fusible et le HLK |
+| J1 | bornier à vis 2 points, fils L et N de la fiche **96** (jusqu'à 1,5 mm² avec embout) | `TerminalBlock_Kefa_KF128-5.08_1x02` : Kefa KF128, pas de 5,08 mm, trous de 1,4 mm, 10,16 × 10,7 × 14,1 mm | jambe gauche, en bas, ouvert vers l'encoche |
+| J2 | fiche de la tête optique : `GND` `RX` `TX` `LED+` | JST PH 4 broches vertical (B4B-PH-K-S), pas de 2 mm, trous agrandis à 0,9 mm | barre du U ; nappe JST PH 4 fils vers D1 et Q1 soudées au bout |
 | J3, J4 | barrettes femelles du C3 (broches 1–8 et 9–16) | `PinSocket_1x08_P2.54mm_SMD_HX-ZQ` : barrette CMS 1×8 hanxia (LCSC C48641756), pattes en quinconce | jambe droite, à 15,24 mm d'entraxe ; C3 antenne contre le bord haut, USB vers le bas |
 | R1 | 220 Ω, courant de la LED IR | axiale, pas de 7,62 mm | entre les barrettes, sous le C3 |
 | R2 | 10 kΩ, tirage du phototransistor | axiale, pas de 7,62 mm | entre les barrettes, sous le C3 |
@@ -63,7 +63,7 @@ Les empreintes du projet sont produites par `hardware/footprints.py`, à partir 
 Routage :
 
 - **230 V** : pistes de 1 mm, toutes sur la face avant. La varistance est placée en tête : la phase va du fusible à la varistance, puis de la varistance au HLK.
-- **5 V et GND** : pistes de 0,7 mm le long du bord haut, le +5V en face arrière, le GND en face avant. Le GND passe sous J2 puis longe l'encoche jusqu'au C3 ; ce passage étroit reste en 0,3 mm.
+- **5 V et GND** : pistes de 0,7 mm le long du bord haut, le +5V en face arrière, le GND en face avant. Le GND passe sous J2 puis longe l'encoche jusqu'au C3.
 - **Signaux** : pistes de 0,3 mm ; RX passe au-dessus de J2.
 - **Pas de plan de masse** (**DÉCIDÉ**) : avec un UART à 4800 bauds et un C3 qui a son propre plan de masse, des pistes de 0,7 mm suffisent, et aucun cuivre ne risque de passer sous l'antenne.
 
@@ -80,8 +80,11 @@ Le DRC (`kicad-cli pcb drc --schematic-parity`) ne trouve ni erreur, ni liaison 
 `hardware/export-fabrication.sh` relance le DRC (il s'arrête s'il trouve une erreur) puis produit, dans `hardware/fabrication/` (non versionné) :
 
 - `heater-controller-gerbers.zip`, à déposer tel quel chez le fabricant ;
-- `heater-controller-bom-jlcpcb.csv` et `heater-controller-cpl.csv`, la liste et les positions des pièces assemblées par JLCPCB : seulement J3 et J4, les pièces qui portent une référence LCSC dans le schéma ;
+- `heater-controller-bom-jlcpcb.csv` et `heater-controller-cpl.csv`, la liste et les positions des pièces assemblées par JLCPCB : seulement les CMS, J3 et J4 ;
+- `heater-controller-lcsc-cart.csv`, le panier LCSC des pièces à souder soi-même (plus le fusible), à déposer dans le *BOM Tool* de LCSC ;
 - `heater-controller-bom.csv`, la liste complète des composants.
+
+Chaque pièce porte sa référence LCSC dans le schéma (champ `LCSC`) ; `split-bom.py` répartit la liste entre JLCPCB (pièces présentes dans le fichier de placement) et le panier LCSC. Les commandes JLCPCB et LCSC peuvent partir ensemble : expédier la commande JLCPCB vers l'entrepôt LCSC, puis l'ajouter au paiement LCSC.
 
 Le script régénère aussi les rendus, le STEP et le SVG.
 
@@ -89,25 +92,27 @@ Réglages du circuit (JLCPCB) : 2 couches, FR-4 de 1,6 mm, cuivre de 1 oz, HASL 
 
 L'assemblage des barrettes par JLCPCB est **facultatif** : environ 13 $ de plus (mise en route, pochoir, frais de pièce hors catalogue de base), sur 2 cartes minimum. L'entraxe ne dépend pas de qui soude : ce sont les pastilles qui le fixent. Pour les souder soi-même, enficher les deux barrettes sur le C3 avant de les souder : le module les tient alors à son entraxe.
 
-À souder soi-même :
+Pièces (stock et prix LCSC relevés le 27/10/2026) ; les empreintes suivent leurs fiches techniques, une autre référence peut ne pas s'y monter :
 
-| Réf. | Pièce |
-|---|---|
-| PS1 | HLK-PM01 d'origine Hi-Link, à broches traversantes |
-| F1 | porte-fusible TR5 (Littelfuse 560) et fusible TR5 T1A temporisé (Littelfuse 372) |
-| RV1 | varistance 07D431K |
-| J1 | bornier à vis Phoenix MKDS 1,5/2-5,08 (ou compatible au pas de 5,08 mm) |
-| J2 | embase JST PH 4 broches verticale B4B-PH-K-S, et une nappe JST PH 4 fils toute faite |
-| J3, J4 | 2 barrettes femelles CMS 1×8 hanxia HX PM2.54-1x8P TP H8.5-ZQ (LCSC C48641756), si JLCPCB ne les pose pas ; broches mâles à souder sur le C3 |
-| R1, R2 | 220 Ω et 10 kΩ, axiales |
-| D1, Q1 | LED IR 3 mm (SIR 204 EVL) et phototransistor 3 mm (SFH 309 FA) |
+| Réf. | Pièce | Fournisseur | Prix |
+|---|---|---|---|
+| PS1 | Hi-Link HLK-PM01, à broches traversantes | LCSC C209903 | 2,74 $ |
+| F1 | porte-fusible TR5 Littelfuse 56000001009 | LCSC C142909 | 0,76 $ |
+| F1 | fusible TR5 T1A 250 V temporisé Littelfuse 37211000001 (pattes longues, à couper à ~4 mm) | LCSC C142808 | 0,22 $ (par 5) |
+| RV1 | varistance Bourns MOV-07D431K | LCSC C1528105 | 0,14 $ (par 5) |
+| J1 | bornier à vis Kefa KF128-5.08-2P-AA (250 V, 24 A, jusqu'à 2,5 mm²) | LCSC C474952 | 0,19 $ (par 5) |
+| J2 | embase JST B4B-PH-K-S | LCSC C131334 | 0,05 $ (par 10) |
+| — | nappe JST PH 4 fils de 200 mm, bouts étamés (Adafruit 4045) | DigiKey 1528-2825-ND | 0,84 € |
+| J3, J4 | barrettes femelles CMS 1×8 hanxia HX PM2.54-1x8P TP H8.5-ZQ, posées par JLCPCB (ou à souder soi-même) ; broches mâles à souder sur le C3 | LCSC C48641756 | — |
+| R1, R2 | 220 Ω et 10 kΩ, axiales, 1/4 W | stock personnel | — |
+| D1, Q1 | LED IR 3 mm (SIR 204 EVL) et phototransistor 3 mm (SFH 309 FA), ceux du prototype | stock personnel | — |
 
 À vérifier avant de commander :
 
 - **l'entraxe du C3** : si le module, broches soudées, s'enfonce dans une plaque d'essai à cheval sur la gorge centrale, l'entraxe de 15,24 mm est le bon ;
 - **le HLK-PM01** : l'empreinte suit la fiche Hi-Link (broches 5 V à 15,4 mm l'une de l'autre, à 29,4 mm des broches 230 V), avec des trous de 1,2 mm pour absorber la tolérance de ±8 %. Un module différent, ou à pastilles, ne s'y monte pas ;
 - **l'impression à l'échelle 1** de `hardware/heater-controller.svg` : y poser le C3, le HLK et le bornier ;
-- **le boîtier** : la carte fait 86 × 39,5 mm. La partie la plus haute est le HLK (15 mm) ; le C3 sur barrettes monte à environ 13 mm. Le boîtier `enclosure/heater-enclosure.stl` offre 86,8 × 40,3 mm à l'intérieur, soit environ 0,4 mm de jeu par côté, et 30,8 mm de profondeur.
+- **le boîtier** : la carte fait 86 × 39,5 mm. La partie la plus haute est le HLK (15 mm), puis le bornier (14,1 mm) ; le C3 sur barrettes monte à environ 13 mm. Le boîtier offre 86,8 × 40,3 mm à l'intérieur, soit environ 0,4 mm de jeu par côté, et 30,8 mm de profondeur.
 
 Une fois sur la chaudière, le C3 est alimenté en 5 V par le HLK-PM01 : **jamais d'USB branché en même temps**. Sur la plupart des C3 super mini, la broche `5V` est reliée directement au VBUS de l'USB-C : le 5 V externe remonterait dans le port USB de l'ordinateur. Pour vérifier que la LED émet, regarder à travers l'appareil photo d'un téléphone.
 

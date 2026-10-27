@@ -1,0 +1,88 @@
+(footprint "TerminalBlock_Kefa_KF128-5.08_1x02"
+	(version 20260206)
+	(generator "heater-controller")
+	(layer "F.Cu")
+	(descr "Kefa KF128-5.08-2P-AA screw terminal (LCSC C474952), from the Kefa drawing: 5.08 mm pitch, 1.4 mm holes, body 10.16 x 10.7 mm, 14.1 mm high, pins 5.4 mm from the back, wire entry at +y; 250 V 24 A, up to 2.5 mm2")
+	(property "Reference" "REF**"
+		(at 0 6.8 0)
+		(layer "F.SilkS")
+		(uuid "4df5bab7-7091-493b-a084-52ceec754499")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "TerminalBlock_Kefa_KF128-5.08_1x02"
+		(at 0 -6.8 0)
+		(layer "F.Fab")
+		(uuid "9a3ba52f-832e-4ab5-a9ec-6e291e1ef329")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_rect
+		(start -2.54 -5.4)
+		(end 7.62 5.3)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "a75313af-9d1f-46ca-9cff-77a340e3a49d")
+	)
+	(fp_rect
+		(start -2.66 -5.52)
+		(end 7.74 5.42)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "b1f8256b-674e-42dc-960c-861bff4cb83b")
+	)
+	(fp_rect
+		(start -3.04 -5.9)
+		(end 8.12 5.8)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "04fab5d8-1736-46be-8995-ff9273ba9909")
+	)
+	(fp_text user "WIRES"
+		(at 0 4.3 0)
+		(layer "F.Fab")
+		(uuid "9f1db0e0-43d9-4ec0-8276-5c01a79447e1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole rect
+		(at 0.0 0)
+		(size 2.5 2.5)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(uuid "52957bdd-6894-4242-9b5d-bb8c0b453789")
+	)
+	(pad "2" thru_hole circle
+		(at 5.08 0)
+		(size 2.5 2.5)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(uuid "ed8db806-b3e8-4de3-b36c-0c14c77c0d8f")
+	)
+	(embedded_fonts no)
+)
