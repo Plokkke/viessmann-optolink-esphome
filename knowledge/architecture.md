@@ -43,6 +43,8 @@ Si HA est injoignable pendant **30 min** (depuis le démarrage ou depuis la dern
 
 ## Alimentation
 
-- Carte dédiée (`hardware/`) : HLK-PM01 (230 V → 5 V, 3 W) sur la carte, protégé par un fusible T500mA et une varistance, branché sur la fiche **96** ; remplace le bloc RPDZN5W6 du prototype.
+- Carte dédiée (`hardware/`) : HLK-PM01 (230 V → 5 V, 3 W) sur la carte, protégé par un fusible TR5 T1A (valeur Hi-Link) et une varistance Bourns MOV-07D431K, branché sur la fiche **96** par un bornier à vis Kefa KF128 ; chaque pièce porte sa référence LCSC dans le schéma ; remplace le bloc RPDZN5W6 du prototype.
+- **DÉCIDÉ** : carte parallèle à la façade de la chaudière, flottante dans la partie élargie du boîtier ; **tête optique déportée** (LED IR et phototransistor enfoncés dans les trous de 3 mm de la fiche, reliés à la carte par une nappe 4 fils), ce qui découple l'enfichage de la position de la carte.
+- **DÉCIDÉ** : tout est démontable : C3 sur barrettes femelles CMS (entraxe 15,24 mm), tête optique sur une embase JST PH 4 broches avec une nappe toute faite, 230 V sur bornier à vis, fusible sur porte-fusible TR5. Tout est traversant et soudé à la main, sauf les deux barrettes du C3 (CMS, éventuellement posées par JLCPCB). Pas de plan de masse. Carte en U renversé : 230 V sur la jambe gauche, fiche de la tête optique au centre, C3 sur la jambe droite.
 - Prototype : bloc AC/DC 5 V 1 A (RPDZN5W6, sortie fixe), branché sur la fiche **96** de la régulation : sortie 230 V réservée aux accessoires, commandée par l'interrupteur de la chaudière, 6 A au total pour tous les accessoires (notice de montage p. 24-25).
-- La sortie 5 V va sur `5V`/`GND` du D1 mini, dont le régulateur fournit le 3,3 V de l'adaptateur IR.
+- La sortie 5 V va sur `5V`/`GND` de l'ESP32-C3 super mini, dont le régulateur fournit le 3,3 V de l'adaptateur IR.

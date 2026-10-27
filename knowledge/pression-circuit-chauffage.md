@@ -10,7 +10,7 @@ Références : notice de montage et de maintenance B2LA (`manuals/vitodens-222-w
 | Lisible par Optolink ? | **Non** : aucun datapoint de pression connu pour `20CB` |
 | Code défaut « pression basse » ? | **Non**. Symptômes indirects : **F2** (limiteur de sécurité, p. 142) et **F1** (limiteur fumées, p. 141), dont la première mesure est « contrôler le niveau de remplissage, purger » |
 | Correction automatique ? | **Non** : ni électrovanne de remplissage ni accessoire Viessmann. Possible seulement avec un remplisseur tiers (Reflex Fillcontrol, Caleffi…) posé par un pro avec disconnecteur EN 1717 |
-| Surveillance à distance ? | Capteur externe : transducteur 0–4 bar (sortie 0,5–4,5 V) sur un raccord du circuit, lu par l'ESP (entrée `A0` du D1 mini, via un pont diviseur) |
+| Surveillance à distance ? | Capteur externe : transducteur 0–4 bar (sortie 0,5–4,5 V) sur un raccord du circuit, lu par l'ESP (entrée ADC du C3, GPIO0 à GPIO4, via un pont diviseur) |
 
 ## Valeurs de référence
 

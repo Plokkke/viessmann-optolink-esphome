@@ -678,13 +678,18 @@
       {
         "filename": "heater-controller.kicad_sch",
         "name": "heater-controller",
-        "uuid": "00000000-0000-0000-0000-000000000000"
+        "uuid": "4266bf52-7a8f-5f06-b6da-e764e6e9f650"
       }
     ],
     "used_designators": "",
     "variants": []
   },
-  "sheets": [],
+  "sheets": [
+    [
+      "4266bf52-7a8f-5f06-b6da-e764e6e9f650",
+      "heater-controller"
+    ]
+  ],
   "text_variables": {},
   "tuning_profiles": {
     "meta": {

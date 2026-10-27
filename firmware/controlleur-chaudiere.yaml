@@ -6,14 +6,16 @@ external_components:
     components: [optolink]
     refresh: 1h
 
+# Logs over native USB, so the UART stays dedicated to the Optolink
 logger:
-  hardware_uart: UART0
-  baud_rate: 0
+  hardware_uart: USB_SERIAL_JTAG
 
 # Vitotronic 200 HO1B (20CB): addresses and confidence in knowledge/datapoints-optolink.md
 # Prime, staggered update intervals keep the Optolink queue below ~0.5 request/s
 optolink:
   protocol: P300
+  tx_pin: GPIO4
+  rx_pin: GPIO3
 
 # Failsafe: without Home Assistant for 30 min, hand heating back to the controller's own schedule
 api:
