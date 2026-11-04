@@ -7,7 +7,7 @@ import os
 import uuid
 from pathlib import Path
 
-LIBRARY = Path(__file__).parent / "heater-controller.pretty"
+LIBRARY = Path(__file__).parent.parent / "heater-controller.pretty"
 MODELS = "${KICAD10_3DMODEL_DIR}"
 KICAD_FOOTPRINTS = Path(os.environ.get("KICAD10_FOOTPRINT_DIR", "/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints"))
 PITCH = 2.54
@@ -162,7 +162,9 @@ def kf128():
     items = [*body(-TERMINAL_PITCH / 2, -TERMINAL_BACK, 1.5 * TERMINAL_PITCH, TERMINAL_FRONT), entry, *pads]
     descr = ("Kefa KF128-5.08-2P-AA screw terminal (LCSC C474952), from the Kefa drawing: 5.08 mm pitch, 1.4 mm holes, "
              "body 10.16 x 10.7 mm, 14.1 mm high, pins 5.4 mm from the back, wire entry at +y; 250 V 24 A, up to 2.5 mm2")
-    return footprint("TerminalBlock_Kefa_KF128-5.08_1x02", descr, "through_hole", TERMINAL_FRONT + 1.5, items)
+    # No Kefa model in KiCad: the KF128 is a clone of the Phoenix MKDS 1,5 (0.3 mm lower, 0.9 mm shallower)
+    clone = model("TerminalBlock_Phoenix.3dshapes/TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal.step")
+    return footprint("TerminalBlock_Kefa_KF128-5.08_1x02", descr, "through_hole", TERMINAL_FRONT + 1.5, items, [clone])
 
 
 def mov_07d():
@@ -179,7 +181,7 @@ def mov_07d():
 def jst_ph():
     """KiCad's own footprint, holes widened from 0.75 to 0.9 mm and pads from 1.2 to 1.4 mm to keep the ring."""
     source = (KICAD_FOOTPRINTS / "Connector_JST.pretty" / f"{JST_PH}.kicad_mod").read_text()
-    return (source.replace(JST_PH, f"{JST_PH}_Drill0.9").replace("(drill 0.75)", "(drill 0.9)")
+    return (source.replace(f'"{JST_PH}"', f'"{JST_PH}_Drill0.9"').replace("(drill 0.75)", "(drill 0.9)")
             .replace("(size 1.2 1.75)", "(size 1.4 1.75)"))
 
 
