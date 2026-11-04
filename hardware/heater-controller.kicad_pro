@@ -546,7 +546,7 @@
       "netlist": "",
       "plot": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "exports/heater-controller.stl",
       "vrml": ""
     },
     "page_layout_descr_file": ""

@@ -7,7 +7,7 @@ import os
 import uuid
 from pathlib import Path
 
-LIBRARY = Path(__file__).parent / "heater-controller.pretty"
+LIBRARY = Path(__file__).parent.parent / "heater-controller.pretty"
 MODELS = "${KICAD10_3DMODEL_DIR}"
 KICAD_FOOTPRINTS = Path(os.environ.get("KICAD10_FOOTPRINT_DIR", "/Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints"))
 PITCH = 2.54
@@ -20,10 +20,8 @@ C3_USB_OVERHANG, C3_USB_WIDTH = 1.5, 9.0
 C3_ROW_SPACING = 6 * PITCH
 C3_ANTENNA_KEEPOUT = 2.3
 
-# hanxia HX PM2.54-1x8P TP H8.5-ZQ (LCSC C48641756), "A type": pin 1 leg on the left, legs alternate
-SOCKET_PAD = (3.00, 1.02)
-SOCKET_LEG_OFFSET = 1.5
-SOCKET_BODY = (2.5, 20.82)
+# Antenna keepout between the two socket rows, 3.3 mm clear of each row axis
+C3_KEEPOUT_HALF_WIDTH = C3_ROW_SPACING / 2 - 3.3
 
 # Kefa KF128-5.08-2P-AA (LCSC C474952): 1.4 mm holes; body 10.16 wide, 10.7 deep, 14.1 high, pins 5.4 mm from the back
 TERMINAL_PITCH, TERMINAL_DRILL = 5.08, 1.4
@@ -49,20 +47,9 @@ def rect(layer, x0, y0, x1, y1, width=0.1):
             f'{stroke(width)}\n\t\t(fill no)\n\t\t(layer "{layer}")\n\t\t(uuid "{u()}")\n\t)')
 
 
-def centred_rect(layer, half_x, half_y, width=0.1, dy=0.0):
-    return rect(layer, -half_x, -half_y + dy, half_x, half_y + dy, width)
-
-
 def text(kind, value, y, layer):
     head = f'\t(property "{kind}" "{value}"' if kind else f'\t(fp_text user "{value}"'
     return f'{head}\n\t\t(at 0 {round(y, 3)} 0)\n\t\t(layer "{layer}")\n\t\t(uuid "{u()}")\n{FONT}\n\t)'
-
-
-def smd_pad(number, x, y, size_x, size_y):
-    return (f'\t(pad "{number}" smd roundrect\n\t\t(at {round(x, 3)} {round(y, 3)})\n'
-            f"\t\t(size {size_x} {size_y})\n"
-            '\t\t(layers "F.Cu" "F.Mask" "F.Paste")\n\t\t(roundrect_rratio 0.15)\n'
-            f'\t\t(uuid "{u()}")\n\t)')
 
 
 def tht_pad(number, x, y, diameter, drill):
@@ -97,7 +84,7 @@ def body(x0, y0, x1, y1):
 
 def antenna_keepout():
     top = C3_LENGTH / 2 - C3_ANTENNA_KEEPOUT
-    half = C3_ROW_SPACING / 2 - SOCKET_LEG_OFFSET - SOCKET_PAD[0] / 2 - 0.3
+    half = C3_KEEPOUT_HALF_WIDTH
     xy = " ".join(f"(xy {round(x, 3)} {round(y, 3)})" for x, y in (
         (-half, top), (half, top), (half, C3_LENGTH / 2), (-half, C3_LENGTH / 2)))
     return ('\t(zone\n\t\t(net 0)\n\t\t(net_name "")\n\t\t(layers "F.Cu" "B.Cu")\n'
@@ -127,21 +114,6 @@ def c3_outline():
                      half_l + 1.5, items)
 
 
-def socket():
-    half_x = SOCKET_LEG_OFFSET + SOCKET_PAD[0] / 2
-    pads = [smd_pad(str(n), -SOCKET_LEG_OFFSET if n % 2 else SOCKET_LEG_OFFSET, (n - 4.5) * PITCH, *SOCKET_PAD)
-            for n in range(1, 9)]
-    marker = (f"\t(fp_circle\n\t\t(center {-half_x - 0.6} {-3.5 * PITCH})\n\t\t(end {-half_x - 0.35} {-3.5 * PITCH})\n"
-              f'{stroke(0.25)}\n\t\t(fill yes)\n\t\t(layer "F.SilkS")\n\t\t(uuid "{u()}")\n\t)')
-    items = [centred_rect("F.Fab", SOCKET_BODY[0] / 2, SOCKET_BODY[1] / 2),
-             centred_rect("F.SilkS", SOCKET_BODY[0] / 2 + 0.1, SOCKET_BODY[1] / 2 + 0.1, 0.12),
-             centred_rect("F.CrtYd", half_x + 0.25, SOCKET_BODY[1] / 2 + 0.25, 0.05), marker, *pads]
-    descr = ("1x8 female socket, 2.54 mm, SMD, staggered legs, 8.5 mm high: hanxia HX PM2.54-1x8P TP H8.5-ZQ "
-             "(LCSC C48641756), land pattern from its datasheet (pads 1.02 x 3.00, centres 1.5 mm off the row)")
-    return footprint("PinSocket_1x08_P2.54mm_SMD_HX-ZQ", descr, "smd", SOCKET_BODY[1] / 2 + 1.5, items,
-                     [model("Connector_PinSocket_2.54mm.3dshapes/PinSocket_1x08_P2.54mm_Vertical_SMD_Pin1Left.step")])
-
-
 def hlk_pm01():
     """Hi-Link datasheet: body 34 x 20; AC pins 2.3 mm in, at 12.5 / 7.5 mm; DC pins at 31.7 mm, 2.3 mm from edges."""
     origin = (2.3, 12.5)
@@ -162,7 +134,9 @@ def kf128():
     items = [*body(-TERMINAL_PITCH / 2, -TERMINAL_BACK, 1.5 * TERMINAL_PITCH, TERMINAL_FRONT), entry, *pads]
     descr = ("Kefa KF128-5.08-2P-AA screw terminal (LCSC C474952), from the Kefa drawing: 5.08 mm pitch, 1.4 mm holes, "
              "body 10.16 x 10.7 mm, 14.1 mm high, pins 5.4 mm from the back, wire entry at +y; 250 V 24 A, up to 2.5 mm2")
-    return footprint("TerminalBlock_Kefa_KF128-5.08_1x02", descr, "through_hole", TERMINAL_FRONT + 1.5, items)
+    # No Kefa model in KiCad: the KF128 is a clone of the Phoenix MKDS 1,5 (0.3 mm lower, 0.9 mm shallower)
+    clone = model("TerminalBlock_Phoenix.3dshapes/TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal.step")
+    return footprint("TerminalBlock_Kefa_KF128-5.08_1x02", descr, "through_hole", TERMINAL_FRONT + 1.5, items, [clone])
 
 
 def mov_07d():
@@ -179,13 +153,12 @@ def mov_07d():
 def jst_ph():
     """KiCad's own footprint, holes widened from 0.75 to 0.9 mm and pads from 1.2 to 1.4 mm to keep the ring."""
     source = (KICAD_FOOTPRINTS / "Connector_JST.pretty" / f"{JST_PH}.kicad_mod").read_text()
-    return (source.replace(JST_PH, f"{JST_PH}_Drill0.9").replace("(drill 0.75)", "(drill 0.9)")
+    return (source.replace(f'"{JST_PH}"', f'"{JST_PH}_Drill0.9"').replace("(drill 0.75)", "(drill 0.9)")
             .replace("(size 1.2 1.75)", "(size 1.4 1.75)"))
 
 
 FOOTPRINTS = {
     "ESP32-C3_SuperMini_Outline": c3_outline,
-    "PinSocket_1x08_P2.54mm_SMD_HX-ZQ": socket,
     "Converter_ACDC_HLK-PM01": hlk_pm01,
     "TerminalBlock_Kefa_KF128-5.08_1x02": kf128,
     "RV_Disc_D9mm_W4.8mm_P5mm_Inline": mov_07d,

@@ -28,7 +28,7 @@
 				(font
 					(size 1.27 1.27)
 				)
-					(hide yes)
+				(hide yes)
 			)
 		)
 		(property "Datasheet" "https://www.espressif.com/sites/default/files/documentation/esp32-c3-mini-1_datasheet_en.pdf"
@@ -37,16 +37,16 @@
 				(font
 					(size 1.27 1.27)
 				)
-					(hide yes)
+				(hide yes)
 			)
 		)
-		(property "Description" "ESP32-C3 super mini module (USB-C, 5 V in, 3.3 V LDO), two 1x8 rows"
+		(property "Description" "ESP32-C3 super mini module (USB-C, 5 V in, 3.3 V LDO), two 1x8 rows; pins drawn in their physical place, top view, USB end up"
 			(at 0 0 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-					(hide yes)
+				(hide yes)
 			)
 		)
 		(symbol "ESP32-C3_SuperMini_0_1"
@@ -61,10 +61,18 @@
 					(type background)
 				)
 			)
+			(text "USB"
+				(at 0 11.43 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
 		)
 		(symbol "ESP32-C3_SuperMini_1_1"
 			(pin bidirectional line
-				(at -17.78 10.16 0)
+				(at 17.78 -7.62 180)
 				(length 2.54)
 				(name "GPIO0"
 					(effects
@@ -82,7 +90,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -17.78 7.62 0)
+				(at 17.78 -5.08 180)
 				(length 2.54)
 				(name "GPIO1"
 					(effects
@@ -100,7 +108,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -17.78 5.08 0)
+				(at 17.78 -2.54 180)
 				(length 2.54)
 				(name "GPIO2/STRAP"
 					(effects
@@ -118,7 +126,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -17.78 2.54 0)
+				(at -17.78 5.08 0)
 				(length 2.54)
 				(name "GPIO7"
 					(effects
@@ -136,7 +144,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -17.78 0.0 0)
+				(at -17.78 2.54 0)
 				(length 2.54)
 				(name "GPIO8/LED"
 					(effects
@@ -154,7 +162,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -17.78 -2.54 0)
+				(at -17.78 0 0)
 				(length 2.54)
 				(name "GPIO9/BOOT"
 					(effects
@@ -172,7 +180,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -17.78 -5.08 0)
+				(at -17.78 -2.54 0)
 				(length 2.54)
 				(name "GPIO10"
 					(effects
@@ -190,7 +198,7 @@
 				)
 			)
 			(pin power_out line
-				(at -17.78 -7.62 0)
+				(at 17.78 5.08 180)
 				(length 2.54)
 				(name "3V3"
 					(effects
@@ -208,7 +216,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 17.78 10.16 180)
+				(at 17.78 2.54 180)
 				(length 2.54)
 				(name "GPIO4"
 					(effects
@@ -226,7 +234,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 17.78 7.62 180)
+				(at 17.78 0 180)
 				(length 2.54)
 				(name "GPIO3"
 					(effects
@@ -244,7 +252,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 17.78 5.08 180)
+				(at -17.78 10.16 0)
 				(length 2.54)
 				(name "GPIO5"
 					(effects
@@ -262,7 +270,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 17.78 2.54 180)
+				(at -17.78 7.62 0)
 				(length 2.54)
 				(name "GPIO6"
 					(effects
@@ -280,7 +288,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 17.78 0.0 180)
+				(at -17.78 -5.08 0)
 				(length 2.54)
 				(name "GPIO20/RX"
 					(effects
@@ -298,7 +306,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at 17.78 -2.54 180)
+				(at -17.78 -7.62 0)
 				(length 2.54)
 				(name "GPIO21/TX"
 					(effects
@@ -316,7 +324,7 @@
 				)
 			)
 			(pin power_in line
-				(at 17.78 -5.08 180)
+				(at 17.78 7.62 180)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -334,7 +342,7 @@
 				)
 			)
 			(pin power_in line
-				(at 17.78 -7.62 180)
+				(at 17.78 10.16 180)
 				(length 2.54)
 				(name "5V"
 					(effects
