@@ -91,6 +91,8 @@ Chaque pièce porte sa référence LCSC dans le schéma (champ `LCSC`) ; `jlcpcb
 
 Réglages du circuit (JLCPCB) : 2 couches, FR-4 de 1,6 mm, cuivre de 1 oz, HASL sans plomb, 5 exemplaires (le minimum de fabrication), et 5 cartes montées si JLCPCB assemble. Les coins intérieurs du U seront arrondis par la fraise (rayon d'environ 0,5 mm), sans conséquence.
 
+Prix de revient (devis JLCPCB, novembre 2026), pour 5 cartes : environ 60 $ de fabrication et de montage par JLCPCB, plus environ 15 € de fusibles et de câbles JST, vendus par lots ; l'impression du boîtier est négligeable (environ 1 € en fablab). Soit **14 à 17 € par carte**, mais **environ 70 € pour une seule carte** si on n'a pas les pièces au détail : les circuits, le montage et les lots se paient d'un bloc.
+
 Pourquoi tout en traversant : le HLK et le bornier n'existent pas en CMS, donc JLCPCB soude du traversant de toute façon (forfait de soudure manuelle par commande, puis environ 0,016 $ par point). Passer le reste en CMS ajouterait la chaîne CMS (mise en route, pochoir, frais par référence hors catalogue de base) sans rien retirer. Pour souder les barrettes soi-même, les enficher sur le C3 avant de les souder : le module les tient alors à son entraxe.
 
 Pièces (stock et prix LCSC relevés le 27/10/2026) ; les empreintes suivent leurs fiches techniques, une autre référence peut ne pas s'y monter :

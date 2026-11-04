@@ -91,6 +91,8 @@ Every part carries its LCSC number in the schematic (`LCSC` field); `jlcpcb-file
 
 Board settings (JLCPCB): 2 layers, 1.6 mm FR-4, 1 oz copper, lead-free HASL, 5 boards (the manufacturing minimum), and 5 assembled boards if JLCPCB assembles. The milling bit rounds the inner corners of the U (about 0.5 mm radius), which does not matter.
 
+Cost (JLCPCB quote, November 2026), for 5 boards: about $60 for JLCPCB manufacturing and assembly, plus about €15 of fuses and JST leads, sold in packs; printing the enclosure is negligible (about €1 at a fablab). That is **€14 to €17 per board**, but **about €70 for a single board** without loose parts at hand: boards, assembly and packs are paid as a whole.
+
 Why everything is through-hole: the HLK and the terminal block do not exist as SMD parts, so JLCPCB solders through-hole parts anyway (a manual soldering fee per order, then about $0.016 per joint). Moving the rest to SMD would add the SMD line (setup, stencil, fee per non-basic part) without removing anything. To solder the sockets yourself, plug both onto the C3 before soldering, so the module holds them at its own spacing.
 
 Parts (LCSC stock and prices checked on 2026-10-27); the footprints follow their datasheets, another part number may not fit:
