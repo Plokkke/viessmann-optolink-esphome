@@ -7,17 +7,20 @@ DIY adapter that controls a Viessmann **Vitodens 222-W** gas boiler (wall-hung, 
 ESPHome firmware on an ESP32-C3 super mini; `P300` protocol; `optolink` component from ESPHome PR [#4453](https://github.com/esphome/esphome/pull/4453).
 
 > [!NOTE]
-> **Project status.** The circuit (IR adapter on a breadboard) and the firmware **work on the boiler**: reading temperatures and writing the setpoint and mode are validated, on a Wemos D1 mini. The project is moving to an ESP32-C3 super mini (smaller, UART dedicated to the Optolink, logs over USB): schematic and firmware are ported, the port is **still to be validated on the boiler**. The **PCB** (`hardware/`) is redrawn around the C3 (U-shaped board, everything removable, off-board optical head) and routed; it is **ready to order** once the checks listed below are done, and the **enclosure** is redrawn to fit it.
+> **Project status.** The circuit (IR adapter on a breadboard) and the firmware **work on the boiler**: reading temperatures and writing the setpoint and mode are validated, on a Wemos D1 mini. The project is moving to an ESP32-C3 super mini (smaller, UART dedicated to the Optolink, logs over USB): schematic and firmware are ported, the port is **still to be validated on the boiler**. The **PCB** (`hardware/`) is **final** around the C3 (U-shaped board lying flat, everything through-hole and removable, off-board optical head): DRC with no error or warning, order files to solder it yourself or have JLCPCB assemble it. The **enclosure** (`enclosure/`) is final and sized for it.
 
-**Keywords**: Viessmann Vitodens 222-W, Vitotronic 200 HO1B, gas boiler, Optolink, optical interface, IR adapter, Device ID `20CB`, P300 / VS2 protocol, OpenV, vcontrold, ESPHome, Home Assistant, home automation, ESP32-C3, ESP32-C3 super mini, HLK-PM01, Tado thermostat replacement.
+> [!TIP]
+> **Ready-made boards.** I may have assembled boards in stock (JLCPCB makes 5 at least): if you want one, get in touch by opening an issue on this repository.
+
+**Keywords**: Viessmann Vitodens 222-W, Vitotronic 200 HO1B, gas boiler, Optolink, optical interface, IR adapter, Device ID `20CB`, P300 / VS2 protocol, OpenV, vcontrold, ESPHome, Home Assistant, home automation, ESP32-C3, ESP32-C3 super mini, HLK-PM01, KiCad PCB, JLCPCB, 3D-printed enclosure, Tado thermostat replacement.
 
 ## Repository layout
 
 | Folder | Content |
 |---|---|
 | `firmware/` | ESPHome configuration: `common.yaml` (Wi-Fi, API, OTA, LED, diagnostics), `controlleur-chaudiere.yaml` (Optolink), `test-connectivity.yaml` (fake entities), `secrets.example.yaml` |
-| `hardware/` | dedicated board, KiCad 10 project: schematic (`heater-controller.kicad_sch`), PCB (`.kicad_pcb`), C3 super mini symbol (`.kicad_sym`), isolation rules (`.kicad_dru`), project footprints (`heater-controller.pretty/`); `scripts/`: `export.sh` (manufacturing files and exports), `footprints.py` (writes the footprints), `split-bom.py` (JLCPCB BOM and LCSC cart); `exports/` (written by `export.sh`): schematic, 1:1 board, side and 3D renders, `.step` and `.stl` models for the enclosure (Fusion 360); `fabrication/`: order files, not versioned |
-| `enclosure/` | 3D-printed enclosure clipped onto the Optolink port, sized for the U-shaped board: two interlocking half shells (`heater-enclosure-left-shell.stl`, `-right-shell.stl`), the sliding lid (`-lid.stl`) and the plug that clips onto the Optolink (`-optical-plug.stl`); Fusion 360 source `heater-enclosure.f3d` |
+| `hardware/` | dedicated board, KiCad 10 project: schematic (`heater-controller.kicad_sch`), PCB (`.kicad_pcb`), C3 super mini symbol (`.kicad_sym`), isolation rules (`.kicad_dru`), project footprints (`heater-controller.pretty/`); `scripts/`: `export.sh` (manufacturing files and exports), `footprints.py` (writes the footprints), `jlcpcb-files.py` (LCSC cart, JLCPCB BOM and CPL), `placements.py` (part centres for the CPL); `exports/` (written by `export.sh`): schematic, 1:1 board, side and 3D renders, `.step` and `.stl` models for the enclosure (Fusion 360); `fabrication/`: order files, not versioned |
+| `enclosure/` | 3D-printed enclosure clipped onto the Optolink port, sized for the U-shaped board: two interlocking half shells (`heater-enclosure-left-shell.stl`, `-right-shell.stl`), the sliding lid (`-lid.stl`) and the plug that clips onto the Optolink (`-optical-plug.stl`); the four parts laid out on the print bed (`print-setup.stl`); Fusion 360 source `heater-enclosure.f3d` |
 | `knowledge/` | design notes, in French: `architecture.md` (roles, contract with the controller, safety), `datapoints-optolink.md`, `pression-circuit-chauffage.md`, Viessmann manuals (`manuals/`), optolink component doc, photos |
 
 ## Hardware
@@ -45,7 +48,7 @@ The IR LED faces the boiler's phototransistor and vice versa (Optolink "V" mark)
 
 Open `hardware/heater-controller.kicad_pro` in KiCad 10, or online with [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/viessmann-optolink-esphome/blob/main/hardware/heater-controller.kicad_sch). The board (74 × 35.5 mm, 2 layers) sits **parallel to the floor**, so perpendicular to the boiler front, and rests, unfixed, on four side ledges of the enclosure. It is an **inverted U**: the HLK lying on the bar, 230 V on the left leg, the C3 on the right leg. The notch between the legs (22 mm wide, 12.5 mm deep) separates 230 V from low voltage and lets the 230 V cable reach the terminal block.
 
-The 230 V comes in through the optical plug: the L and N wires go up through the 6 × 6 mm slot in the bottom of the plug, through the hole in the enclosure front, under the board (4 mm of free height) and back up through the notch to the terminal block. Under the board they stay left of the half-shell joint teeth (only 2.8 mm in the middle of the floor) and away from the HLK 5 V pins (0.7 mm above the floor): the free lane is under the HLK, between its 230 V and 5 V pins, with no copper on the back. The optical head lead goes through the upper right part of the plug, away from the 230 V wires. **Everything is removable**: C3 on sockets, optical head on a connector, 230 V on a screw terminal, fuse in a holder.
+The 230 V comes in through the optical plug: the L and N wires go up through the 6 × 6 mm slot in the bottom of the plug, through the hole in the enclosure front, under the board (4 mm of free height) and back up through the notch to the terminal block. Under the board they stay left of the half-shell joint teeth (only 2.8 mm in the middle of the floor) and away from the HLK 5 V pins (0.7 mm above the floor): the free lane is under the HLK, between its 230 V and 5 V pins, with no copper on the back. The optical head lead goes through the upper right part of the plug, away from the 230 V wires. **Everything is through-hole and removable**: C3 on sockets, optical head on a connector, 230 V on a screw terminal, fuse in a holder.
 
 | Ref. | Part | Footprint | Location |
 |---|---|---|---|
@@ -54,7 +57,7 @@ The 230 V comes in through the optical plug: the L and N wires go up through the
 | RV1 | Bourns MOV-07D431K varistor (275 VAC) | `RV_Disc_D9mm_W4.8mm_P5mm_Inline`: inline leads at 5 mm pitch, 1.0 mm holes, 9 × 4.8 mm disc | left of the HLK, above the fuse |
 | J1 | 2-way screw terminal, L and N wires from plug **96** (separate 0.75 mm² flexible wires with ferrules) | `TerminalBlock_Kefa_KF128-5.08_1x02`: Kefa KF128, 5.08 mm pitch, 1.4 mm holes, 10.16 × 10.7 × 14.1 mm | left leg, bottom, right of the fuse, opening towards the notch; terminal 1 = L, terminal 2 = N |
 | J2 | optical head connector: `GND` `RX` `TX` `LED+` | 4-pin vertical JST PH (B4B-PH-K-S), 2 mm pitch, holes widened to 0.9 mm | top right, above the C3; 4-wire JST PH lead to D1 and Q1 soldered at the far end |
-| J3, J4 | C3 female sockets (pins 1–8 and 9–16) | `PinSocket_1x08_P2.54mm_SMD_HX-ZQ`: hanxia 1×8 SMD socket (LCSC C48641756), staggered legs | right leg, 15.24 mm apart; C3 antenna against the right edge, USB towards the HLK |
+| J3, J4 | C3 female sockets (pins 1–8 and 9–16) | KiCad's `PinSocket_1x08_P2.54mm_Vertical`: 1×8 through-hole female socket, 8.5 mm high | right leg, 15.24 mm apart; C3 antenna against the right edge, USB towards the HLK |
 | R1 | 220 Ω, IR LED current | axial, 7.62 mm pitch | top right, next to J2 |
 | R2 | 10 kΩ, phototransistor pull-up | axial, 7.62 mm pitch | top right, next to J2 |
 
@@ -65,7 +68,7 @@ The project footprints are written by `hardware/scripts/footprints.py`, from the
 Routing:
 
 - **230 V**: 1 mm tracks, all on the front. The varistor comes first: the line goes from the fuse to the varistor, then from the varistor to the HLK.
-- **5 V, GND and signals**: 0.3 mm tracks on the front, from the HLK and J2 to socket J3. J4 carries no signal: it only holds the C3.
+- **5 V, GND and signals**: 0.3 mm tracks on the front, from the HLK and J2 to socket J3, except RX, which runs on the back from J2 to J3 (it crosses TX). 3V3 runs between pins 6 and 7 of J3. J4 carries no signal: it only holds the C3.
 - **No ground plane** (**DÉCIDÉ**): with a 4800-baud UART and a C3 that has its own ground plane, plain tracks are enough, and no copper can end up under the antenna.
 
 DRC rules require ≥ 6 mm between 230 V and low voltage and ≥ 2.5 mm between 230 V conductors. Only the two J1 terminals are exempt: their gap is the block's rated pitch.
@@ -74,24 +77,21 @@ DRC rules require ≥ 6 mm between 230 V and low voltage and ≥ 2.5 mm between 
 |---|---|---|
 | ![Top](hardware/exports/heater-controller-top.png) | ![Bottom](hardware/exports/heater-controller-bottom.png) | ![3D](hardware/exports/heater-controller-3d.png) |
 
-DRC (`kicad-cli pcb drc --schematic-parity`) finds no error, no missing connection and no schematic mismatch. Some silkscreen warnings remain: markings clipped by pads, which do not affect manufacturing.
+DRC (`kicad-cli pcb drc --schematic-parity`) finds no error, no warning, no missing connection and no schematic mismatch.
 
 ### Ordering
 
-`hardware/scripts/export.sh` reruns DRC (it stops if it finds an error), then writes to `hardware/fabrication/` (not versioned):
+Every part is through-hole: the same board can be built in two ways. `hardware/scripts/export.sh` reruns DRC (it stops if it finds an error), then writes to `hardware/fabrication/` (not versioned):
 
-- `heater-controller-gerbers.zip`, to upload as is to the manufacturer;
-- `heater-controller-bom-jlcpcb.csv` and `heater-controller-cpl.csv`, the list and positions of the parts JLCPCB assembles: only the SMD parts, J3 and J4;
-- `heater-controller-lcsc-cart.csv`, the LCSC cart of the hand-soldered parts (plus the fuse), to upload to the LCSC *BOM Tool*;
-- `heater-controller-bom.csv`, the full parts list.
+- `heater-controller-gerbers.zip`, the board, to upload as is to JLCPCB in both cases;
+- `hand-soldered/heater-controller-lcsc-cart.csv`, **hand soldering**: the LCSC cart of every part for 5 boards, fuse holder and fuse included, to upload to the LCSC *BOM Tool*. Both orders can ship together: send the JLCPCB order to the LCSC warehouse, then add it at the LCSC checkout;
+- `jlcpcb-assembly/heater-controller-bom.csv` and `-cpl.csv`, **JLCPCB assembly**, no LCSC order: the list and positions of every part (through-hole assembly). JLCPCB solders the fuse holder but ships no loose parts: the TR5 T1A 250 V time-lag fuse is bought separately and clipped in by hand. The CPL follows JLCPCB's KiCad guide (`Designator,Mid X,Mid Y,Rotation,Layer`, in mm) and gives the **centre** of each part, the middle of its pads, computed by `placements.py`: KiCad exports the footprint origin, which is pin 1 on through-hole parts (15 mm off for the HLK). Check the part orientations in the JLCPCB preview, which has its own reference orientation for each part.
 
-Every part carries its LCSC number in the schematic (`LCSC` field); `split-bom.py` splits the list between JLCPCB (parts in the placement file) and the LCSC cart. The JLCPCB and LCSC orders can ship together: send the JLCPCB order to the LCSC warehouse, then add it at the LCSC checkout.
+Every part carries its LCSC number in the schematic (`LCSC` field); `jlcpcb-files.py` derives both sets of files from it. `placements.py` runs with KiCad's Python (`pcbnew` module); `export.sh` looks for it in the KiCad app on macOS, or in `$KICAD_PYTHON`. The script also regenerates the renders, the STEP, the STL and the SVGs.
 
-The script also regenerates the renders, the STEP and the SVG.
+Board settings (JLCPCB): 2 layers, 1.6 mm FR-4, 1 oz copper, lead-free HASL, 5 boards (the manufacturing minimum), and 5 assembled boards if JLCPCB assembles. The milling bit rounds the inner corners of the U (about 0.5 mm radius), which does not matter.
 
-Board settings (JLCPCB): 2 layers, 1.6 mm FR-4, 1 oz copper, lead-free HASL, 5 boards (the manufacturing minimum). The milling bit rounds the inner corners of the U (about 0.5 mm radius), which does not matter.
-
-Having JLCPCB fit the sockets is **optional**: about $13 extra (setup, stencil, non-basic part fee), on 2 boards minimum. The row spacing does not depend on who solders: the pads set it. To solder them yourself, plug both sockets onto the C3 before soldering, so the module holds them at its own spacing.
+Why everything is through-hole: the HLK and the terminal block do not exist as SMD parts, so JLCPCB solders through-hole parts anyway (a manual soldering fee per order, then about $0.016 per joint). Moving the rest to SMD would add the SMD line (setup, stencil, fee per non-basic part) without removing anything. To solder the sockets yourself, plug both onto the C3 before soldering, so the module holds them at its own spacing.
 
 Parts (LCSC stock and prices checked on 2026-10-27); the footprints follow their datasheets, another part number may not fit:
 
@@ -104,8 +104,8 @@ Parts (LCSC stock and prices checked on 2026-10-27); the footprints follow their
 | J1 | Kefa KF128-5.08-2P-AA screw terminal (250 V, 24 A, up to 2.5 mm²) | LCSC C474952 | $0.19 (by 5) |
 | J2 | JST B4B-PH-K-S header | LCSC C131334 | $0.05 (by 10) |
 | — | 200 mm 4-wire JST PH lead, tinned ends (Adafruit 4045) | DigiKey 1528-2825-ND | €0.84 |
-| J3, J4 | hanxia HX PM2.54-1x8P TP H8.5-ZQ 1×8 SMD female sockets, fitted by JLCPCB (or hand-soldered); male pins to solder on the C3 | LCSC C48641756 | — |
-| R1, R2 | 220 Ω and 10 kΩ, axial, 1/4 W | own stock | — |
+| J3, J4 | BOOMELE 1×8 through-hole female sockets, 8.5 mm high; male pins to solder on the C3 | LCSC C27438 | — |
+| R1, R2 | 220 Ω and 10 kΩ, metal film, 1/4 W, UNI-ROYAL MFR0W4F2200A50 and MFR0W4F1002A50 | LCSC C57439, C57436 | — |
 | D1, Q1 | 3 mm IR LED (SIR 204 EVL) and 3 mm phototransistor (SFH 309 FA), from the prototype | own stock | — |
 
 To check before ordering:

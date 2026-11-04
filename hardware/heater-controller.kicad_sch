@@ -3719,6 +3719,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C57439"
+			(at 124.46 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "1"
 			(uuid "aca482c4-9153-5d7a-9ccd-7734f27d672b")
 		)
@@ -3797,6 +3806,15 @@
 				(font
 					(size 1.27 1.27)
 				)
+			)
+		)
+		(property "LCSC" "C57436"
+			(at 114.3 55.88 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
 			)
 		)
 		(pin "1"
@@ -4155,7 +4173,7 @@
 				)
 			)
 		)
-		(property "Value" "Socket 1x8 SMD (C3 pins 1-8)"
+		(property "Value" "Socket 1x8 THT (C3 pins 1-8)"
 			(at 97.79 78.74 0)
 			(effects
 				(font
@@ -4164,7 +4182,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "heater-controller:PinSocket_1x08_P2.54mm_SMD_HX-ZQ"
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical"
 			(at 74.93 58.42 0)
 			(effects
 				(font
@@ -4182,7 +4200,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C48641756"
+		(property "LCSC" "C27438"
 			(at 74.93 58.42 0)
 			(effects
 				(font
@@ -4395,7 +4413,7 @@
 				)
 			)
 		)
-		(property "Value" "Socket 1x8 SMD (C3 pins 9-16)"
+		(property "Value" "Socket 1x8 THT (C3 pins 9-16)"
 			(at 19.05 78.74 0)
 			(effects
 				(font
@@ -4404,7 +4422,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "heater-controller:PinSocket_1x08_P2.54mm_SMD_HX-ZQ"
+		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x08_P2.54mm_Vertical"
 			(at 36.83 58.42 0)
 			(effects
 				(font
@@ -4422,7 +4440,7 @@
 				(hide yes)
 			)
 		)
-		(property "LCSC" "C48641756"
+		(property "LCSC" "C27438"
 			(at 36.83 58.42 0)
 			(effects
 				(font
