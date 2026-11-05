@@ -114,17 +114,18 @@ Index `CB` → famille `_200_1x` ; l'entité « Extended identification » (`0x0
 | 0x2305 / 0x2304 (courbe) | 0x27D3 / 0x27D4 | « 0x2305 war falsches Register » (openv) |
 | 0x7507… (historique défauts) | 0x7590… | bloque le dialogue sur 20CB |
 
-## Comportement du composant (PR #4453)
+## Comportement du composant (esphome_vitohome v0.6)
 
 | Point | Comportement |
 |---|---|
-| `div_ratio` | uniquement 1, 10, 100, 1000 ou 3600 ; le ÷ 2 se fait par le filtre `multiply: 0.5` |
-| 2 octets, `div_ratio` 10 ou 100 | décodé en int16 signé : températures négatives correctes |
-| 1 octet, `div_ratio: 1` | non signé ; signé par le filtre `lambda` |
-| `number` négatif | l'écriture est un comportement indéfini en C++ : **ne jamais écrire de valeur négative** |
-| Longueur maximale | 9 octets (VitoWiFi) |
-| `update_interval` | 10 s par défaut, 1 à 1800 s ; à fixer sur chaque entité |
-| `binary_sensor` | 1 octet, toute valeur ≠ 0 = ON |
+| Échelle | `converter` : `noconv`, `div2`, `div10`, `div100`, `div1000`, `sec2hour`, `mult*` ; décodage sur 64 bits, mise à l'échelle en double |
+| Signe | `div2` et `div10` signés, les autres non signés ; `signed:` force le choix (niveau de courbe `0x27D4` signé) |
+| Lecture dans un bloc | P300 refuse une lecture qui commence à l'intérieur d'un bloc : lire la base du bloc (`length`) et extraire le champ (`byte_offset`, `byte_length`) |
+| Écriture | relue juste après l'écriture ; une écriture partielle dans un bloc se fait en lecture-modification-écriture du bloc entier |
+| Lecture ≠ écriture | `state_address` pour lire à une autre adresse que celle où l'on écrit (mode `0x2323` écrit, `0x2301` relu par le `climate`) |
+| `update_interval` | par entité, arrondi au pas du hub (10 s ici) |
+| `binary_sensor` | ON si un bit de `bit_mask` (0xFF par défaut) est à 1 |
+| Liaison | 4800 bauds 8E2 imposés ; entité de connectivité Optolink fournie par le hub |
 
 ## Limites
 

@@ -2,187 +2,176 @@
 
 **Français** · [English](README.en.md)
 
-Adaptateur DIY qui pilote la chaudière Viessmann **Vitodens 222-W** (murale, ballon intégré ; régulation Vitotronic 200 type HO1B, Device ID Optolink `20CB`) depuis Home Assistant par l'interface optique **Optolink**, en lisant et en écrivant ses *datapoints* (température de chaudière, consigne d'ambiance, mode de fonctionnement, mode économie, défaut).
+Pilotez votre chaudière Viessmann depuis Home Assistant, grâce à une petite carte Wi-Fi qui se pose sur son port optique de diagnostic.
 
-Firmware ESPHome sur un ESP32-C3 super mini ; protocole `P300` ; composant `optolink` de la PR ESPHome [#4453](https://github.com/esphome/esphome/pull/4453).
+![Carte montée](hardware/exports/heater-controller-3d.png)
 
 > [!NOTE]
-> **État du projet.** Le montage (adaptateur IR sur plaque d'essai) et le firmware **fonctionnent sur la chaudière** : lecture des températures et écriture de la consigne et du mode validées, sur un Wemos D1 mini. **DÉCIDÉ** : passage à l'ESP32-C3 super mini (plus compact, UART dédié à l'Optolink, logs par USB) ; le schéma et le firmware sont portés, le portage reste **à valider sur la chaudière**. Le **circuit imprimé** (`hardware/`) est **finalisé** autour du C3 (carte en U posée à plat, tout traversant et démontable, tête optique déportée) : DRC sans erreur ni avertissement, fichiers de commande pour le souder soi-même ou le faire monter par JLCPCB. Le **boîtier** (`enclosure/`) est finalisé à ses dimensions.
+> **État du projet.** Le firmware fonctionne sur la chaudière avec un prototype sur plaque d'essai. La carte et le boîtier sont finalisés ; leur version avec l'ESP32-C3 reste à valider sur la chaudière.
+>
+> **Cartes toutes faites.** J'ai peut-être des cartes montées en stock : ouvrez une *issue* si ça vous intéresse.
 
-> [!TIP]
-> **Cartes toutes faites.** J'ai peut-être en stock des cartes déjà montées (JLCPCB en fabrique 5 au minimum) : si ça vous intéresse, écrivez-moi en ouvrant une *issue* sur ce dépôt.
+## Ce que ça permet
 
-**Mots-clés** : Viessmann Vitodens 222-W, Vitotronic 200 HO1B, chaudière gaz, Optolink, interface optique, adaptateur IR, Device ID `20CB`, protocole P300 / VS2, OpenV, vcontrold, ESPHome, Home Assistant, domotique, ESP32-C3, ESP32-C3 super mini, HLK-PM01, circuit imprimé KiCad, JLCPCB, boîtier imprimé en 3D, remplacement du thermostat Tado.
+- **Suivre la chaudière** : températures (chaudière, eau chaude, extérieur, fumées), brûleur (marche, puissance, nombre de démarrages, heures de fonctionnement), pompes, défauts.
+- **La régler depuis Home Assistant** :
+  - consignes d'ambiance (normale et réduite) et d'eau chaude ;
+  - mode de fonctionnement (arrêt, eau chaude seule, chauffage et eau chaude) et mode économie ;
+  - courbe de chauffe.
+- **Sans risque** : si Home Assistant ne répond plus pendant 30 minutes, la chaudière reprend son propre programme.
 
-## Arborescence
+## Compatibilité
 
-| Dossier | Contenu |
-|---|---|
-| `firmware/` | configuration ESPHome : `common.yaml` (Wi-Fi, API, OTA, LED, diagnostic), `controlleur-chaudiere.yaml` (Optolink), `test-connectivity.yaml` (entités factices), `secrets.example.yaml` |
-| `hardware/` | carte dédiée, projet KiCad 10 : schéma (`heater-controller.kicad_sch`), circuit imprimé (`.kicad_pcb`), symbole du C3 super mini (`.kicad_sym`), règles d'isolement (`.kicad_dru`), empreintes du projet (`heater-controller.pretty/`) ; `scripts/` : `export.sh` (fabrication et exports), `footprints.py` (écrit les empreintes), `jlcpcb-files.py` (panier LCSC, BOM et CPL JLCPCB), `placements.py` (centres des pièces pour le CPL) ; `exports/` (générés par `export.sh`) : rendus du schéma, de la carte à l'échelle 1, des faces et en 3D, modèles `.step` et `.stl` pour le boîtier (Fusion 360) ; `fabrication/` : fichiers de commande, non versionnés |
-| `enclosure/` | boîtier imprimé en 3D, fixé sur le port Optolink, dimensionné pour la carte en U : deux demi-coques (`heater-enclosure-left-shell.stl`, `-right-shell.stl`) qui s'emboîtent, le couvercle coulissant (`-lid.stl`) et la fiche qui se clipse sur l'Optolink (`-optical-plug.stl`) ; les quatre pièces posées sur le plateau d'impression (`print-setup.stl`) ; source Fusion 360 `heater-enclosure.f3d` |
-| `knowledge/` | `architecture.md` (rôles, contrat avec la régulation, sécurité), `datapoints-optolink.md`, `pression-circuit-chauffage.md`, notices Viessmann (`manuals/`), doc du composant optolink, photos |
+Testé sur une **Vitodens 222-W** avec régulation **Vitotronic 200 type HO1B**. Les autres chaudières Viessmann qui ont un port Optolink devraient fonctionner, en adaptant les adresses de la configuration. Les modèles sont listés sur le [wiki OpenV](https://github.com/openv/openv/wiki).
 
-## Matériel
+## Comment ça marche
 
-| Composant | Rôle |
-|---|---|
-| ESP32-C3 super mini | Wi-Fi + UART vers l'Optolink (GPIO4/GPIO3), logs par l'USB natif |
-| LED IR (ex. SIR 204 EVL) + 220 Ω | émission vers la chaudière |
-| Phototransistor (ex. SFH 309 FA) + 10 kΩ | réception |
+Les régulations Viessmann ont en façade un port optique, l'Optolink, prévu pour les outils de diagnostic. Une LED infrarouge et un phototransistor, posés dessus, dialoguent avec la régulation. Un ESP32-C3 sous ESPHome relaie ces échanges vers Home Assistant en Wi-Fi. La carte s'alimente sur la sortie 230 V réservée aux accessoires de la chaudière.
 
-Câblage (cf. `knowledge/viessmann-optolink-esphome.pdf`, p. 2) :
+```mermaid
+flowchart LR
+  HA[Home Assistant] <-- Wi-Fi --> C3[ESP32-C3<br>ESPHome]
+  C3 <-- liaison série --> IR[LED IR +<br>phototransistor]
+  IR <-- infrarouge --> OL[Optolink<br>de la Vitotronic]
+  P96[Fiche 96<br>230 V] --> PSU[Alimentation isolée<br>230 V → 5 V] --> C3
+```
 
-| C3 super mini | Branché sur |
-|---|---|
-| `3V3` | résistance 220 Ω → anode de la LED IR ; résistance 10 kΩ → collecteur du phototransistor |
-| `GPIO4` (TX) | cathode de la LED IR |
-| `GPIO3` (RX) | collecteur du phototransistor |
-| `GND` | émetteur du phototransistor |
+## D'où ça vient
 
-La LED IR est alignée sur le phototransistor de la chaudière et inversement (repère « V » de l'Optolink). Un repère au scotch indique, sur l'adaptateur, le côté `TX` (LED IR) et le côté `RX` (phototransistor), pour le monter dans le bon sens.
+Le projet part du composant ESPHome `optolink` de [j0ta29](https://github.com/j0ta29) ([PR #4453](https://github.com/esphome/esphome/pull/4453), fermée par son auteur en octobre 2026 sans être intégrée à ESPHome). Sa page de documentation n'est plus en ligne. Une copie tirée de [Web Archive](https://web.archive.org/web/20251012034933/https://deploy-preview-2737--esphome.netlify.app/components/optolink) est rangée dans `knowledge/viessmann-optolink-esphome.pdf` : on y trouve le schéma d'origine de l'adaptateur infrarouge et sa configuration ESPHome.
 
-## Carte dédiée (`hardware/`)
+Le firmware utilise aujourd'hui [esphome_vitohome](https://github.com/SoulSolistice/esphome_vitohome) de SoulSolistice, un composant ESPHome maintenu qui parle le même protocole et a été mis au point sur la même régulation.
+
+Ce dépôt y ajoute une carte dédiée, avec son alimentation 230 V, et un boîtier qui se fixe sur l'Optolink.
+
+## Le matériel
+
+### Alimentation 230 V
+
+La carte se branche sur la **fiche 96** de la Vitotronic, la sortie 230 V prévue pour les accessoires. Elle est commandée par l'interrupteur de la chaudière : la carte s'éteint avec elle.
+
+- **Alimentation isolée** HLK-PM01 (230 V → 5 V, 3 W) : la partie basse tension est séparée du secteur.
+- **Fusible T1A** temporisé, sur porte-fusible, et **varistance** contre les surtensions.
+- **Bornier à vis** pour les fils L et N (0,75 mm² souple, avec embouts).
+- Plus de **6 mm** entre le 230 V et la basse tension sur la carte.
+
+> [!WARNING]
+> Ce montage touche au 230 V de la chaudière. Couper le courant avant toute intervention, et ne jamais brancher l'USB du C3 quand la carte est sous tension : sa broche 5 V est reliée directement à l'USB et alimenterait l'ordinateur. En cas de doute, faites appel à un électricien.
+
+### Schéma
 
 ![Schéma](hardware/exports/heater-controller-schematic.svg)
 
-Ouvrir `hardware/heater-controller.kicad_pro` dans KiCad 10, ou en ligne sur [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/viessmann-optolink-esphome/blob/main/hardware/heater-controller.kicad_sch). La carte (74 × 35,5 mm, 2 couches) se place **parallèle au sol**, donc perpendiculaire à la façade de la chaudière, et repose sans fixation sur quatre cales latérales du boîtier. Elle a la forme d'un **U renversé** : le HLK couché sur la barre, le 230 V sur la jambe gauche, le C3 sur la jambe droite. L'encoche entre les jambes (22 mm de large, 12,5 mm de profondeur) sépare le 230 V de la basse tension et laisse passer le câble 230 V jusqu'au bornier.
+### Carte
 
-Le 230 V entre par la fiche optique : les fils L et N montent par la fente de 6 × 6 mm du fond de la fiche, traversent le trou de la façade du boîtier, passent sous la carte (4 mm de hauteur libre) et remontent par l'encoche jusqu'au bornier. Sous la carte, ils restent à gauche des dents d'assemblage des demi-coques (2,8 mm seulement au milieu du fond) et loin des broches 5 V du HLK (0,7 mm au-dessus du fond) : la voie libre est sous le HLK, entre ses broches 230 V et 5 V, sans cuivre en face arrière. La nappe de la tête optique passe par la partie haute droite de la fiche, à l'écart des fils 230 V. **Tout est traversant et démontable** : C3 sur barrettes, tête optique sur une fiche, 230 V sur bornier, fusible sur porte-fusible.
+Circuit 2 couches de 74 × 35,5 mm, tout en composants traversants. Le C3 est enfiché sur des barrettes, et la tête infrarouge se raccorde par un câble JST : tout se démonte.
 
-| Réf. | Composant | Empreinte | Place |
+| Dessus | Dessous |
+|---|---|
+| ![Dessus](hardware/exports/heater-controller-top.png) | ![Dessous](hardware/exports/heater-controller-bottom.png) |
+
+Le projet KiCad 10 est dans `hardware/`, consultable en ligne sur [KiCanvas](https://kicanvas.org/?github=https://github.com/Plokkke/viessmann-optolink-esphome/blob/main/hardware/heater-controller.kicad_sch).
+
+### Boîtier
+
+Imprimé en 3D en quatre pièces : deux demi-coques, un couvercle coulissant et la fiche qui se clipse sur l'Optolink. Les fichiers sont dans `enclosure/` : un STL par pièce, `print-setup.stl` avec les quatre pièces sur le plateau, et la source Fusion 360.
+
+## Fabriquer la carte
+
+Deux façons, avec les mêmes fichiers Gerber :
+
+- **La souder soi-même** : JLCPCB fabrique le circuit, LCSC fournit les pièces.
+- **La faire monter par JLCPCB** : il soude tout, il ne reste qu'à clipser le fusible.
+
+`hardware/scripts/export.sh` produit dans `hardware/fabrication/` les Gerbers, le panier LCSC et les fichiers d'assemblage JLCPCB (BOM et CPL). Il faut KiCad 10.
+
+**Prix de revient** (devis de novembre 2026) : pour 5 cartes, environ 60 $ de fabrication et de montage chez JLCPCB, plus environ 15 € de fusibles et de câbles, vendus par lots. L'impression du boîtier est négligeable (environ 1 € en fablab). Cela fait **14 à 17 € par carte**, mais **environ 70 €** pour une seule carte si l'on n'a pas déjà les pièces.
+
+### Pièces pour une carte
+
+| Pièce | Qté | Référence | Prix unitaire |
 |---|---|---|---|
-| PS1 | HLK-PM01 (230 V → 5 V, 3 W) | `Converter_ACDC_HLK-PM01`, d'après la fiche Hi-Link (34 × 20 × 15 mm) | barre du U, couché : broches 230 V à gauche, broches 5 V à droite vers le C3 |
-| F1 | fusible T1A (valeur conseillée par Hi-Link) | porte-fusible TR5, pas de 5,08 mm, trous de 1,0 mm | jambe gauche, en bas à gauche |
-| RV1 | varistance Bourns MOV-07D431K (275 V AC) | `RV_Disc_D9mm_W4.8mm_P5mm_Inline` : pattes alignées au pas de 5 mm, trous de 1,0 mm, disque de 9 × 4,8 mm | à gauche du HLK, au-dessus du fusible |
-| J1 | bornier à vis 2 points, fils L et N de la fiche **96** (fils souples séparés de 0,75 mm² avec embout) | `TerminalBlock_Kefa_KF128-5.08_1x02` : Kefa KF128, pas de 5,08 mm, trous de 1,4 mm, 10,16 × 10,7 × 14,1 mm | jambe gauche, en bas, à droite du fusible, ouvert vers l'encoche ; borne 1 = L, borne 2 = N |
-| J2 | fiche de la tête optique : `GND` `RX` `TX` `LED+` | JST PH 4 broches vertical (B4B-PH-K-S), pas de 2 mm, trous agrandis à 0,9 mm | en haut à droite, au-dessus du C3 ; nappe JST PH 4 fils vers D1 et Q1 soudées au bout |
-| J3, J4 | barrettes femelles du C3 (broches 1–8 et 9–16) | `PinSocket_1x08_P2.54mm_Vertical` de KiCad : barrette femelle traversante 1×8, 8,5 mm de haut | jambe droite, à 15,24 mm d'entraxe ; C3 antenne contre le bord droit, USB vers le HLK |
-| R1 | 220 Ω, courant de la LED IR | axiale, pas de 7,62 mm | en haut à droite, à côté de J2 |
-| R2 | 10 kΩ, tirage du phototransistor | axiale, pas de 7,62 mm | en haut à droite, à côté de J2 |
+| Alimentation Hi-Link HLK-PM01 | 1 | LCSC C209903 | 2,74 $ |
+| Porte-fusible TR5 Littelfuse 56000001009 | 1 | LCSC C142909 | 0,76 $ |
+| Fusible TR5 T1A 250 V temporisé Littelfuse 37211000001 | 1 | LCSC C142808, DigiKey WK4248CT-ND | 0,22 $ (LCSC), 1,24 $ (DigiKey) |
+| Varistance Bourns MOV-07D431K | 1 | LCSC C1528105 | 0,14 $ |
+| Bornier à vis Kefa KF128 2 points, pas de 5,08 mm | 1 | LCSC C474952 | 0,19 $ |
+| Embase JST PH 4 broches B4B-PH-K-S | 1 | LCSC C131334 | 0,05 $ |
+| Barrette femelle 1×8, pas de 2,54 mm, 8,5 mm de haut | 2 | LCSC C27438 | — |
+| Résistance 220 Ω 1/4 W | 1 | LCSC C57439 | — |
+| Résistance 10 kΩ 1/4 W | 1 | LCSC C57436 | — |
+| ESP32-C3 super mini, avec ses broches mâles | 1 | AliExpress | — |
+| Câble JST PH 4 fils de 200 mm (Adafruit 4045) | 1 | DigiKey 1528-2825-ND | 0,95 $ |
+| LED infrarouge 3 mm Everlight SIR204C | 1 | DigiKey 1080-1171-ND | 0,64 $ |
+| Phototransistor 3 mm OSRAM SFH 309 FA | 1 | DigiKey 475-SFH309FA-ND | 0,55 $ |
 
-D1 (LED IR) et Q1 (phototransistor) sont **hors carte** : enfoncés dans les trous de 3 mm de la fiche (axes à 14,0 mm), reliés à J2 par la nappe. Le C3 (MOD1) n'est pas soudé : sur le schéma, il est branché par J3 et J4 ; sur la carte, un contour sans pastilles montre sa place et interdit le cuivre sous l'antenne.
+Prix relevés en octobre et novembre 2026, à l'unité ou par petits lots.
 
-Les empreintes du projet sont produites par `hardware/scripts/footprints.py`, à partir des fiches techniques des pièces. L'entraxe des rangées du C3, 15,24 mm (0,6″, module compatible plaque d'essai), vient de [ProtoSupplies](https://protosupplies.com/product/esp32c3-supermini/). Les broches 1–8 `5V GND 3V3 GPIO4…0` sont d'un côté, les broches 9–16 `GPIO5…10 GPIO20 GPIO21` de l'autre ; la première broche est à 1,27 mm du bord USB.
+## Installer
 
-Routage :
+1. **Flasher le C3** par USB, hors de la carte (voir *Firmware*), puis l'enficher sur ses barrettes.
+2. **Préparer la tête infrarouge** : souder la LED et le phototransistor au bout du câble JST, puis les enfoncer dans les trous de la fiche du boîtier. Sur J2 :
+   - broche 1 : anode de la LED ;
+   - broche 2 : cathode de la LED ;
+   - broche 3 : collecteur du phototransistor ;
+   - broche 4 : émetteur du phototransistor.
 
-- **230 V** : pistes de 1 mm, toutes sur la face avant. La varistance est placée en tête : la phase va du fusible à la varistance, puis de la varistance au HLK.
-- **5 V, GND et signaux** : pistes de 0,3 mm en face avant, du HLK et de J2 jusqu'à la barrette J3, sauf RX qui passe en face arrière de J2 à J3 (il croise TX). La 3V3 passe entre les broches 6 et 7 de J3. J4 ne porte aucun signal : elle tient seulement le C3.
-- **Pas de plan de masse** (**DÉCIDÉ**) : avec un UART à 4800 bauds et un C3 qui a son propre plan de masse, des pistes simples suffisent, et aucun cuivre ne risque de passer sous l'antenne.
+   Ne pas se fier aux couleurs du câble : repérer la broche 1 sur le connecteur.
+3. **Câbler le 230 V**, chaudière coupée : les fils de la fiche 96 entrent par la fiche optique et se vissent sur le bornier (borne 1 : L, borne 2 : N).
+4. **Fermer le boîtier** et le clipser sur l'Optolink, la LED en face du phototransistor de la chaudière (repère « V » de l'Optolink).
+5. **Rallumer la chaudière** : la carte apparaît dans Home Assistant.
 
-Les règles DRC imposent ≥ 6 mm entre le 230 V et la basse tension et ≥ 2,5 mm entre conducteurs 230 V. Seules les deux bornes de J1 y échappent : leur écart est celui, normalisé, du bornier.
-
-| Face avant | Face arrière | Vue 3D |
-|---|---|---|
-| ![Dessus](hardware/exports/heater-controller-top.png) | ![Dessous](hardware/exports/heater-controller-bottom.png) | ![3D](hardware/exports/heater-controller-3d.png) |
-
-Le DRC (`kicad-cli pcb drc --schematic-parity`) ne trouve ni erreur, ni avertissement, ni liaison manquante, ni écart avec le schéma.
-
-### Commander
-
-Toutes les pièces sont traversantes : la même carte se monte de deux façons. `hardware/scripts/export.sh` relance le DRC (il s'arrête s'il trouve une erreur) puis produit, dans `hardware/fabrication/` (non versionné) :
-
-- `heater-controller-gerbers.zip`, le circuit, à déposer tel quel chez JLCPCB dans les deux cas ;
-- `hand-soldered/heater-controller-lcsc-cart.csv`, **soudure à la main** : le panier LCSC de toutes les pièces pour 5 cartes, porte-fusible et fusible compris, à déposer dans le *BOM Tool* de LCSC. Les deux commandes peuvent partir ensemble : expédier la commande JLCPCB vers l'entrepôt LCSC, puis l'ajouter au paiement LCSC ;
-- `jlcpcb-assembly/heater-controller-bom.csv` et `-cpl.csv`, **montage par JLCPCB**, sans commande LCSC : la liste et les positions de toutes les pièces (assemblage traversant). JLCPCB soude le porte-fusible mais n'envoie pas de pièces en vrac : le fusible TR5 T1A 250 V temporisé s'achète à part et se clipse à la main. Le CPL suit le format de la notice KiCad de JLCPCB (`Designator,Mid X,Mid Y,Rotation,Layer`, en mm) et donne le **centre** de chaque pièce, celui des pastilles, calculé par `placements.py` : KiCad exporte l'origine de l'empreinte, qui est la broche 1 des pièces traversantes (15 mm à côté pour le HLK). Vérifier l'orientation des pièces dans l'aperçu de JLCPCB, qui a sa propre orientation de référence par pièce.
-
-Chaque pièce porte sa référence LCSC dans le schéma (champ `LCSC`) ; `jlcpcb-files.py` en tire les deux jeux de fichiers. `placements.py` tourne avec le Python de KiCad (module `pcbnew`) ; `export.sh` le cherche dans l'application KiCad sur macOS, ou dans `$KICAD_PYTHON`. Le script régénère aussi les rendus, le STEP, le STL et les SVG.
-
-Réglages du circuit (JLCPCB) : 2 couches, FR-4 de 1,6 mm, cuivre de 1 oz, HASL sans plomb, 5 exemplaires (le minimum de fabrication), et 5 cartes montées si JLCPCB assemble. Les coins intérieurs du U seront arrondis par la fraise (rayon d'environ 0,5 mm), sans conséquence.
-
-Prix de revient (devis JLCPCB, novembre 2026), pour 5 cartes : environ 60 $ de fabrication et de montage par JLCPCB, plus environ 15 € de fusibles et de câbles JST, vendus par lots ; l'impression du boîtier est négligeable (environ 1 € en fablab). Soit **14 à 17 € par carte**, mais **environ 70 € pour une seule carte** si on n'a pas les pièces au détail : les circuits, le montage et les lots se paient d'un bloc.
-
-Pourquoi tout en traversant : le HLK et le bornier n'existent pas en CMS, donc JLCPCB soude du traversant de toute façon (forfait de soudure manuelle par commande, puis environ 0,016 $ par point). Passer le reste en CMS ajouterait la chaîne CMS (mise en route, pochoir, frais par référence hors catalogue de base) sans rien retirer. Pour souder les barrettes soi-même, les enficher sur le C3 avant de les souder : le module les tient alors à son entraxe.
-
-Pièces (stock et prix LCSC relevés le 27/10/2026) ; les empreintes suivent leurs fiches techniques, une autre référence peut ne pas s'y monter :
-
-| Réf. | Pièce | Fournisseur | Prix |
-|---|---|---|---|
-| PS1 | Hi-Link HLK-PM01, à broches traversantes | LCSC C209903 | 2,74 $ |
-| F1 | porte-fusible TR5 Littelfuse 56000001009 | LCSC C142909 | 0,76 $ |
-| F1 | fusible TR5 T1A 250 V temporisé Littelfuse 37211000001 (pattes longues, à couper à ~4 mm) | LCSC C142808 | 0,22 $ (par 5) |
-| RV1 | varistance Bourns MOV-07D431K | LCSC C1528105 | 0,14 $ (par 5) |
-| J1 | bornier à vis Kefa KF128-5.08-2P-AA (250 V, 24 A, jusqu'à 2,5 mm²) | LCSC C474952 | 0,19 $ (par 5) |
-| J2 | embase JST B4B-PH-K-S | LCSC C131334 | 0,05 $ (par 10) |
-| — | nappe JST PH 4 fils de 200 mm, bouts étamés (Adafruit 4045) | DigiKey 1528-2825-ND | 0,84 € |
-| J3, J4 | barrettes femelles traversantes 1×8 BOOMELE, 8,5 mm de haut ; broches mâles à souder sur le C3 | LCSC C27438 | — |
-| R1, R2 | 220 Ω et 10 kΩ, couche métallique, 1/4 W, UNI-ROYAL MFR0W4F2200A50 et MFR0W4F1002A50 | LCSC C57439, C57436 | — |
-| D1, Q1 | LED IR 3 mm (SIR 204 EVL) et phototransistor 3 mm (SFH 309 FA), ceux du prototype | stock personnel | — |
-
-À vérifier avant de commander :
-
-- **l'entraxe du C3** : si le module, broches soudées, s'enfonce dans une plaque d'essai à cheval sur la gorge centrale, l'entraxe de 15,24 mm est le bon ;
-- **le HLK-PM01** : l'empreinte suit la fiche Hi-Link (broches 5 V à 15,4 mm l'une de l'autre, à 29,4 mm des broches 230 V), avec des trous de 1,2 mm pour absorber la tolérance de ±8 %. Un module différent, ou à pastilles, ne s'y monte pas ;
-- **l'impression à l'échelle 1** de `hardware/exports/heater-controller-pcb.svg` : y poser le C3, le HLK et le bornier ;
-- **le boîtier** : la carte montée fait 74 × 35,5 × 20,1 mm : 3,3 mm de pattes du HLK en dessous, le HLK (15 mm) et le C3 enfiché (barrette de 8,5 mm, entretoise de 2,5 mm, C3 et USB-C : environ 15,2 mm) au-dessus. Le bornier n'a pas de modèle Kefa : `heater-controller.stl` reprend celui du Phoenix MKDS 1,5, dont il est la copie (13,8 mm au lieu de 14,1). La carte entre par l'ouverture du couvercle, entre des rebords écartés de 75,8 mm (0,9 mm de jeu par côté), et glisse sur quatre cales de 4 mm de haut qui dépassent de 5 mm des parois : 1,7 mm d'appui sous chaque bord, aucune pièce sous la carte à moins de 2,7 mm d'un bord. Couvercle fermé, elle dispose de 80,6 × 39,2 × 27 mm : 3,3 mm de jeu par côté en largeur, 3,7 mm en profondeur, 0,7 mm sous les pattes du HLK et 5 mm au-dessus du HLK et du C3.
-
-Une fois sur la chaudière, le C3 est alimenté en 5 V par le HLK-PM01 : **jamais d'USB branché en même temps**. Sur la plupart des C3 super mini, la broche `5V` est reliée directement au VBUS de l'USB-C : le 5 V externe remonterait dans le port USB de l'ordinateur. Pour vérifier que la LED émet, regarder à travers l'appareil photo d'un téléphone.
+Pour vérifier que la LED émet, la regarder à travers l'appareil photo d'un téléphone.
 
 ## Firmware
 
-### Prérequis
+Le firmware est une configuration ESPHome, dans `firmware/`.
 
 ```sh
 uv tool install esphome
-cp firmware/secrets.example.yaml firmware/secrets.yaml   # puis renseigner les valeurs
-```
-
-`secrets.yaml` n'est pas versionné. Si l'appareil est déjà adopté dans Home Assistant, reprendre la clé API et le mot de passe OTA existants : en changer oblige à le réadopter.
-
-### Test de connectivité (sans chaudière)
-
-`test-connectivity.yaml` porte le même nom d'appareil que le firmware réel, mais remplace l'Optolink par des entités factices (température qui oscille, consigne, interrupteur). La LED du module (GPIO8) est pilotable depuis Home Assistant et clignote en cas d'erreur (Wi-Fi ou API perdus).
-
-```sh
+cp firmware/secrets.example.yaml firmware/secrets.yaml   # Wi-Fi, clé API, mot de passe OTA
 cd firmware
-esphome run test-connectivity.yaml --device /dev/cu.usbmodemXXXX
+esphome run controlleur-chaudiere.yaml --device /dev/cu.usbmodemXXXX    # premier flash, C3 en USB
+esphome run controlleur-chaudiere.yaml --device controlleur-chaudiere.local   # mises à jour par Wi-Fi
 ```
 
-On repasse ensuite sur `controlleur-chaudiere.yaml` par OTA.
+Si le C3 n'apparaît pas en USB, le brancher en maintenant son bouton `BOOT`. `test-connectivity.yaml` remplace la chaudière par des entités factices, pour tester le Wi-Fi et Home Assistant sur table.
 
-### Premier flash (USB)
+## Dans Home Assistant
 
-Le C3 se flashe **hors de la carte** : sur la carte, le HLK masque son port USB-C. On le flashe une fois par USB, on l'enfiche sur J3/J4, puis les mises à jour passent par le Wi-Fi (OTA).
+La carte apparaît comme l'appareil **Controlleur chaudière**. Les principales entités :
 
-```sh
-cd firmware
-esphome run controlleur-chaudiere.yaml --device /dev/cu.usbmodemXXXX
-```
+| Entité | Usage |
+|---|---|
+| Boiler Temperature, Hot water temperature, Outdoor temperature | températures |
+| Burner, Burner power, Burner starts, Burner hours | état et usage du brûleur |
+| Disturbance, Last error | défaut en cours, dernière erreur avec sa date |
+| Heating | thermostat : consigne d'ambiance et mode, en préréglages |
+| Reduced room temperature setpoint | consigne d'ambiance réduite |
+| Hot water setpoint | consigne d'eau chaude |
+| Operation mode, Economy mode | mode de fonctionnement |
+| Heating curve slope, Heating curve level | courbe de chauffe |
 
-`ls /dev/cu.*` liste les ports (USB natif du C3 : aucun pilote). Si le module n'apparaît pas, le brancher en maintenant le bouton `BOOT` (GPIO9).
+> [!IMPORTANT]
+> La chaudière garde ses consignes et ses modes en mémoire EEPROM, qui s'use à chaque écriture. Dans vos automatisations, ne changez une valeur que lorsqu'elle doit vraiment changer : pas plus d'une fois toutes les 15 à 20 minutes, et jamais en boucle.
 
-### Mises à jour (OTA Wi-Fi)
+## Limites connues
 
-```sh
-esphome run controlleur-chaudiere.yaml --device controlleur-chaudiere.local
-```
+- **Composant tiers** : le protocole Optolink n'est pas dans ESPHome ; il vient d'[esphome_vitohome](https://github.com/SoulSolistice/esphome_vitohome), figé sur sa version `v0.6`. Pour le mettre à jour, changer ce tag dans `firmware/controlleur-chaudiere.yaml` et recompiler.
+- **Un seul pilote** : un autre thermostat branché sur la chaudière (Tado, Vitotrol…) réimpose sa propre consigne. Il faut le débrancher.
+- **Wi-Fi** : l'antenne du C3 super mini est faible sur beaucoup de lots. Vérifier le signal (entité *Wi-Fi signal*) dans la chaufferie.
 
-### Logs
+## Pour aller plus loin
 
-Les logs sortent par l'USB natif (`logger.hardware_uart: USB_SERIAL_JTAG`), hors secteur, ou par le Wi-Fi :
+- [`knowledge/architecture.md`](knowledge/architecture.md) : rôle de la carte dans la maison, règles d'écriture, choix de conception.
+- [`knowledge/datapoints-optolink.md`](knowledge/datapoints-optolink.md) : adresses Optolink de la Vitotronic 200 HO1B.
+- [`knowledge/pression-circuit-chauffage.md`](knowledge/pression-circuit-chauffage.md) : pression du circuit de chauffage.
+- `knowledge/manuals/` : notices Viessmann.
 
-```sh
-esphome logs controlleur-chaudiere.yaml --device controlleur-chaudiere.local
-```
+## Licence
 
-Pour tracer les échanges avec la chaudière : `optolink.logger: true` et `logger.level: DEBUG`.
+[MIT](LICENSE) : carte, boîtier et firmware sont libres de reproduction, de modification et de commercialisation.
 
-## Datapoints
+---
 
-Les adresses dépendent du modèle de Vitotronic : liste des appareils et des datapoints sur le [wiki OpenV](https://github.com/openv/openv/wiki) (en allemand). Une valeur lue toutes les 10 s par défaut : régler `update_interval` sur chaque entité, l'interface optique est lente.
-
-| Entité | Adresse | Type |
-|---|---|---|
-| Boiler Temperature | `0xA309` | capteur, 2 octets, ÷ 100 |
-| Disturbance | `0x0A82` | capteur binaire |
-| Room Temperature Setpoint | `0x2306` | nombre, 3–37 °C |
-| Economy mode | `0x2302` | interrupteur |
-| Operation mode | `0x2323` | sélection (arrêt / ECS seule / chauffage + ECS) |
-
-## Points d'attention
-
-- **Composant non officiel** : la PR #4453 a été fermée sans fusion. Elle compile avec ESPHome 2026.10, mais une version future d'ESPHome peut la casser ; dans ce cas, épingler la dernière version d'ESPHome qui fonctionne.
-- **Pas d'autre commande d'ambiance** : le thermostat Tado réimposait sa propre consigne quelques secondes après chaque écriture. **DÉCIDÉ** : le Tado est débranché, la consigne est pilotée uniquement par ce contrôleur (vérifié le 2026-10-24 : la consigne de 25 °C n'a plus été écrasée).
-- **Redémarrage de la chaudière** : le composant suspend la communication 20 s (`communication_suspension`) quand la chaudière ne répond plus, sinon son démarrage se bloque.
-- **Antenne** : l'antenne céramique du C3 super mini est médiocre sur beaucoup de lots ; `wifi.output_power: 8.5dB` stabilise la liaison. Vérifier le signal (`Wi-Fi signal`) dans la chaufferie.
+**Mots-clés** : Viessmann Vitodens 222-W, Vitotronic 200 HO1B, chaudière gaz, Optolink, interface optique, adaptateur IR, Device ID `20CB`, protocole P300 / VS2, OpenV, vcontrold, ESPHome, Home Assistant, domotique, ESP32-C3, ESP32-C3 super mini, HLK-PM01, circuit imprimé KiCad, JLCPCB, boîtier imprimé en 3D, remplacement du thermostat Tado.
