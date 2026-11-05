@@ -1,21 +1,35 @@
 packages:
   common: !include common.yaml
 
+# Optolink protocol (P300) and entities: SoulSolistice/esphome_vitohome, pinned to a release tag
 external_components:
-  - source: github://pr#4453
-    components: [optolink]
-    refresh: 1h
+  - source:
+      type: git
+      url: https://github.com/SoulSolistice/esphome_vitohome
+      ref: v0.6
+    components: [vitohome]
 
 # Logs over native USB, so the UART stays dedicated to the Optolink
 logger:
   hardware_uart: USB_SERIAL_JTAG
 
-# Vitotronic 200 HO1B (20CB): addresses and confidence in knowledge/datapoints-optolink.md
-# Prime, staggered update intervals keep the Optolink queue below ~0.5 request/s
-optolink:
+# 4800 baud, 8E2: the Optolink line settings, enforced by vitohome
+uart:
+  - id: optolink_uart
+    tx_pin: GPIO4
+    rx_pin: GPIO3
+    baud_rate: 4800
+    data_bits: 8
+    parity: EVEN
+    stop_bits: 2
+
+# Vitotronic 200 HO1B (20CB): addresses and confidence in knowledge/datapoints-optolink.md.
+# Not synced on purpose: the controller clock (writing it is ruled out, see knowledge/architecture.md).
+vitohome:
+  id: vito
+  uart_id: optolink_uart
   protocol: P300
-  tx_pin: GPIO4
-  rx_pin: GPIO3
+  update_interval: 10s
 
 # Failsafe: without Home Assistant for 30 min, hand heating back to the controller's own schedule
 api:
@@ -41,244 +55,266 @@ script:
           id: operation_mode
           option: Heating and hot water
 
+# Heating circuit 1 as a thermostat card: room setpoint and operating mode as presets.
+# The mode is written at 0x2323 and read back at 0x2301 (the mode actually set, panel included).
+climate:
+  - platform: vitohome
+    name: Heating
+    target_address: 0x2306
+    visual:
+      min_temperature: 3
+      max_temperature: 37
+      temperature_step: 1
+    operating_mode:
+      address: 0x2323
+      state_address: 0x2301
+      presets:
+        - {name: "Heating and hot water", write: 0x02, read: [0x03], mode: heat}
+        - {name: "Permanently normal", write: 0x04, read: [0x02], mode: heat}
+        - {name: "Permanently reduced", write: 0x03, read: [0x01], mode: heat}
+        - {name: "Only hot water", write: 0x01, read: [0x00], mode: "off"}
+        - {name: "Off", write: 0x00, read: [0x05], mode: "off"}
+
 sensor:
-  - platform: optolink
-    type: QUEUE_SIZE
-    name: Optolink queue size
-    entity_category: diagnostic
-    update_interval: 15s
-  - platform: optolink
+  - platform: vitohome
     name: Boiler Temperature
     address: 0xA309
-    bytes: 2
-    div_ratio: 100
+    length: 2
+    converter: div100
     unit_of_measurement: °C
     device_class: temperature
     state_class: measurement
     accuracy_decimals: 1
-    update_interval: 41s
-  - platform: optolink
+    update_interval: 40s
+  - platform: vitohome
     name: Boiler setpoint
     address: 0x555A
-    bytes: 2
-    div_ratio: 10
+    length: 2
+    converter: div10
     unit_of_measurement: °C
     device_class: temperature
-    update_interval: 59s
-  - platform: optolink
+    update_interval: 60s
+  - platform: vitohome
     name: Outdoor temperature
     address: 0x5525
-    bytes: 2
-    div_ratio: 10
+    length: 2
+    converter: div10
     unit_of_measurement: °C
     device_class: temperature
     state_class: measurement
-    update_interval: 293s
-  - platform: optolink
+    accuracy_decimals: 1
+    update_interval: 300s
+  - platform: vitohome
     name: Flow setpoint
     address: 0x2544
-    bytes: 2
-    div_ratio: 10
+    length: 2
+    converter: div10
     unit_of_measurement: °C
     device_class: temperature
-    update_interval: 119s
-  - platform: optolink
+    update_interval: 120s
+  - platform: vitohome
     name: Hot water temperature
     address: 0x0812
-    bytes: 2
-    div_ratio: 10
+    length: 2
+    converter: div10
     unit_of_measurement: °C
     device_class: temperature
     state_class: measurement
-    update_interval: 61s
-  - platform: optolink
+    accuracy_decimals: 1
+    update_interval: 60s
+  - platform: vitohome
     name: Flue gas temperature
     address: 0x0816
-    bytes: 2
-    div_ratio: 10
+    length: 2
+    converter: div10
     unit_of_measurement: °C
     device_class: temperature
     state_class: measurement
-    update_interval: 67s
-  - platform: optolink
+    accuracy_decimals: 1
+    update_interval: 70s
+  - platform: vitohome
     name: Burner power
     address: 0xA38F
-    bytes: 1
-    filters:
-      - multiply: 0.5
+    length: 1
+    converter: div2
+    signed: false
     unit_of_measurement: "%"
     state_class: measurement
-    update_interval: 31s
-  - platform: optolink
+    update_interval: 30s
+  - platform: vitohome
     name: Burner starts
     address: 0x088A
-    bytes: 4
+    length: 4
+    converter: noconv
     state_class: total_increasing
     update_interval: 1800s
-  - platform: optolink
+  - platform: vitohome
     name: Burner hours
     address: 0x08A7
-    bytes: 4
-    div_ratio: 3600
+    length: 4
+    converter: sec2hour
     unit_of_measurement: h
     device_class: duration
     state_class: total_increasing
-    update_interval: 1799s
-  - platform: optolink
-    name: Heating curve level
-    address: 0x27D4
-    bytes: 1
-    filters:
-      - lambda: "return x > 127 ? x - 256 : x;"
-    unit_of_measurement: K
-    entity_category: diagnostic
-    update_interval: 1797s
+    accuracy_decimals: 1
+    update_interval: 1800s
   # Coding A0 (heating circuit 1): 0 = no remote control, 1 = Vitotrol 200, 2 = Vitotrol 300
-  - platform: optolink
+  - platform: vitohome
     name: Remote control coding A0
     address: 0x27A0
-    bytes: 1
+    length: 1
+    converter: noconv
     entity_category: diagnostic
-    update_interval: 1791s
+    update_interval: 1800s
   # 0 = the controller's own room setpoint applies
-  - platform: optolink
+  - platform: vitohome
     name: External room temperature setpoint
     address: 0x2321
-    bytes: 1
+    length: 1
+    converter: noconv
     unit_of_measurement: °C
     device_class: temperature
-    update_interval: 307s
+    update_interval: 300s
 
 binary_sensor:
-  - platform: optolink
+  - platform: vitohome
+    type: connectivity
+    name: Optolink
+  - platform: vitohome
     name: Disturbance
     address: 0x0A82
     device_class: problem
-    update_interval: 43s
-  - platform: optolink
+    update_interval: 40s
+  - platform: vitohome
     name: Burner
     address: 0x55D3
     device_class: heat
-    update_interval: 23s
-  - platform: optolink
+    update_interval: 20s
+  - platform: vitohome
     name: Internal pump
     address: 0x7660
     device_class: running
-    update_interval: 37s
-  - platform: optolink
+    update_interval: 40s
+  - platform: vitohome
     name: Hot water charging pump
     address: 0x6513
     device_class: running
-    update_interval: 53s
+    update_interval: 50s
 
 number:
-  - platform: optolink
-    name: Room Temperature Setpoint
-    unit_of_measurement: °C
-    address: 0x2306
-    bytes: 1
-    min_value: 3
-    max_value: 37
-    step: 1
-    mode: box
-    icon: "mdi:home-thermometer"
-    device_class: temperature
-    update_interval: 113s
-  - platform: optolink
+  - platform: vitohome
     name: Reduced room temperature setpoint
-    unit_of_measurement: °C
     address: 0x2307
-    bytes: 1
+    length: 1
+    converter: noconv
+    unit_of_measurement: °C
+    device_class: temperature
     min_value: 3
     max_value: 37
     step: 1
     mode: box
-    device_class: temperature
-    update_interval: 301s
-  - platform: optolink
+    update_interval: 300s
+  - platform: vitohome
     name: Hot water setpoint
-    unit_of_measurement: °C
     address: 0x6300
-    bytes: 1
+    length: 1
+    converter: noconv
+    unit_of_measurement: °C
+    device_class: temperature
     min_value: 10
     max_value: 60
     step: 1
     mode: box
-    device_class: temperature
-    update_interval: 311s
-  - platform: optolink
+    update_interval: 300s
+  - platform: vitohome
     name: Heating curve slope
     address: 0x27D3
-    bytes: 1
-    div_ratio: 10
+    length: 1
+    converter: div10
     min_value: 0.2
     max_value: 3.5
     step: 0.1
     mode: box
     entity_category: config
-    update_interval: 1793s
+    update_interval: 1800s
+  - platform: vitohome
+    name: Heating curve level
+    address: 0x27D4
+    length: 1
+    converter: noconv
+    signed: true
+    unit_of_measurement: K
+    min_value: -13
+    max_value: 40
+    step: 1
+    mode: box
+    entity_category: config
+    update_interval: 1800s
 
 switch:
-  - platform: optolink
+  - platform: vitohome
     name: Economy mode
     address: 0x2331
     icon: mdi:sprout-outline
-    update_interval: 97s
+    update_interval: 100s
 
+# The mode as the controller stores it (read and written at 0x2323); the failsafe sets it
 select:
-  - platform: optolink
+  - platform: vitohome
     id: operation_mode
     name: Operation mode
     address: 0x2323
-    bytes: 1
-    update_interval: 47s
-    map:
-      - "0 -> Off"
-      - "1 -> Only hot water"
-      - "2 -> Heating and hot water"
-      - "3 -> Permanently reduced"
-      - "4 -> Permanently normal"
+    length: 1
+    update_interval: 50s
+    options:
+      0x00: "Off"
+      0x01: "Only hot water"
+      0x02: "Heating and hot water"
+      0x03: "Permanently reduced"
+      0x04: "Permanently normal"
 
 text_sensor:
-  - platform: optolink
-    type: DEVICE_INFO
+  - platform: vitohome
+    type: device_id
     name: Device Info
     entity_category: diagnostic
-    update_interval: 1800s
-  - platform: optolink
-    type: RAW
+  - platform: vitohome
+    type: raw
     name: Extended identification
     address: 0x00F0
-    bytes: 1
+    length: 1
     entity_category: diagnostic
     update_interval: 1800s
-  - platform: optolink
-    type: MAP
+  - platform: vitohome
+    type: enum
     name: Heating state
     address: 0x2500
-    bytes: 1
-    update_interval: 71s
-    filters:
-      - map:
-          - "0 -> Off"
-          - "1 -> Reduced"
-          - "2 -> Normal"
-          - "3 -> Permanently normal"
-  - platform: optolink
-    type: MAP
+    length: 1
+    update_interval: 70s
+    options:
+      0x00: "Off"
+      0x01: "Reduced"
+      0x02: "Normal"
+      0x03: "Permanently normal"
+  - platform: vitohome
+    type: enum
     name: Hot water charging state
     address: 0x650A
-    bytes: 1
-    update_interval: 29s
-    filters:
-      - map:
-          - "0 -> Idle"
-          - "1 -> Charging"
-          - "2 -> Overrun"
-  - platform: optolink
-    type: RAW
+    length: 1
+    update_interval: 30s
+    options:
+      0x00: "Idle"
+      0x01: "Charging"
+      0x02: "Overrun"
+  # Fault history slot 1: fault code and its BCD timestamp
+  - platform: vitohome
+    type: error_history
     name: Last error
     address: 0x7590
-    bytes: 9
     entity_category: diagnostic
-    update_interval: 1795s
+    update_interval: 1800s
+
+button:
+  - platform: vitohome
+    name: Refresh boiler values
+    entity_category: diagnostic

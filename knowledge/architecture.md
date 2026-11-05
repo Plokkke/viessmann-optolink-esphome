@@ -23,7 +23,7 @@ Ce projet ne contient aucune automatisation HA.
 | Ne pas chauffer (ECS seule) | `select` Operation mode | `Only hot water` (1) |
 | Fonctionnement autonome (programme de la Vitotronic) | `select` Operation mode | `Heating and hot water` (2) |
 | Niveau de chauffe (étape 2, à valider) | consigne ambiante externe `0x2321` | lecture seule pour l'instant ; à n'écrire qu'après avoir vérifié qu'elle n'est pas stockée en EEPROM |
-| Température d'eau | `number` Heating curve slope, Room Temperature Setpoint | réglage initial, pas en continu |
+| Température d'eau | `number` Heating curve slope, consigne du `climate` Heating | réglage initial, pas en continu |
 
 ## Contraintes
 
